@@ -1,0 +1,164 @@
+include::shared/attributes.adoc[]
+
+[[icons-and-splashscreens]]
+= Icons and Splashscreens
+
+Apps can be installed on a number of different platforms including iOS, Android, and Windows Phone, and each has a different requirement for their app icons, and splashscreen and launch images. This topic outlines the naming conventions for icons and splashscreen images for each platform.
+
+NOTE: This topic is for Cordova Light apps only. For Cordova apps, icons and splashscreen images can be configured in each platform's native projects.
+
+[[image-file-locations]]
+== Image File Locations
+
+Place icons and splashscreen images in the following locations:
+
+* **Icons**: `/www/res/icons/<platform_name>`
+* **Splashscreens**: `/www/res/splash/<platform_name>`
+
+[NOTE]
+To reduce the size of the binary file, the `res/icons` and `res/splash` directories are removed once the image resources are copied to their correct locations. Do not reference files in those directories in your app.
+
+
+[[ios]]
+== iOS
+
+iOS devices include a range of differing display types (retina/non-retina) and resolutions.
+
+[[icons]]
+=== Icons
+
+The following table displays the file names and paths to specific icon types expected by the build farm. Binaries (or exports) compiled for iOS look for icons in these locations to enable them. Note that the file names are case sensitive.
+
+[cols="5*",options="header"]
+|===
+| File name (case sensitive)  | Target(s)                              | OS Version            | Expected Location                     | Dimensions
+| `Icon.png`                  | iPhone (Non-Retina), iPad (Non-Retina) | iOS 7 or earlier      | `/www/res/icons/ios/Icon.png`         | 57 x 57
+| `Icon@2x.png`               | iPhone (Retina), iPad (Retina)         | iOS 7 or earlier      | `/www/res/icons/ios/Icon@2x.png`      | 114 x 114
+| `Icon-72.png`               | iPad (Non-Retina)                      | iOS 7 or earlier      | `/www/res/icons/ios/Icon-72.png`      | 72 x 72
+| `Icon@2x~ipad.png`          | iPad (Retina)                          | iOS 7 or earlier      | `/www/res/icons/ios/Icon@2x~ipad.png` | 144 x 144
+| `Icon-60@2x.png`            | iPhone (Retina)                        | iOS 7 or later        | `/www/res/icons/ios/Icon-60@2x.png`   | 120 x 120
+| `Icon-76.png`               | iPad (Non-Retina)                      | iOS 7 or later        | `/www/res/icons/ios/Icon-76.png`      | 76 x 76
+| `Icon-76@2x.png`            | iPad (Retina)                          | iOS 7 or later        | `/www/res/icons/ios/Icon-76@2x.png`   | 152 x 152
+| `Icon-60@3x.png`            | iPhone 6 Plus                          | iOS 8 or later        | `/www/res/icons/ios/Icon-60@3x.png`   | 180 x 180
+|===
+
+NOTE: If none of the above icons are provided, a default set of icons is included automatically. To avoid that, provide at least one icon.
+
+[[app-launch-image-and-splashscreens]]
+=== App Launch Image and Splashscreens
+
+The following table displays file names and paths to specific app launch image types as expected by the Build Farm. Binaries (or exports) compiled for iOS look for app launch images in these locations to enable them. Note that the file names are case sensitive.
+
+[cols="4*",options="header"]
+|===
+| File name (case sensitive)      | Target(s)                | Expected Location                                   | Dimensions
+| `Default.png`                   | iPhone 3.5" (Non-Retina) | `/www/res/splash/ios/Default.png`                   | 320 x 480
+| `Default@2x.png`                | iPhone 3.5" (Retina)     | `/www/res/splash/ios/Default@2x.png`                | 640 x 960
+| `Default-568h@2x.png*`          | iPhone 4" (Retina)       | `/www/res/splash/ios/Default-568h@2x.png`           | 640 x 1136
+| `Default-Landscape.png`         | iPad (Non-Retina)        | `/www/res/splash/ios/Default-Landscape.png`         | 1024 x 768
+| `Default-Portrait.png`          | iPad (Non-Retina)        | `/www/res/splash/ios/Default-Portrait.png`          | 768 x 1004
+| `Default-Landscape@2x~ipad.png` | iPad (Retina)            | `/www/res/splash/ios/Default-Landscape@2x~ipad.png` | 2048 x 1496
+| `Default-Portrait@2x~ipad.png`  | iPad (Retina)            | `/www/res/splash/ios/Default-Portrait@2x~ipad.png`  | 1536 x 2008
+| `Default-667h.png`              | iPhone 6                 | `/www/res/splash/ios/Default-667h.png`              | 750 x 1334
+| `Default-736h.png`              | iPhone 6 Plus            | `/www/res/splash/ios/Default-736h.png`              | 1242 x 2208
+| `Default-Landscape-736h.png`    | iPhone 6 Plus Landscape  | `/www/res/splash/ios/Default-Landscape-736h.png`    | 2208 x 1242
+|===
+
+[[supporting-4-retina-displays-iphone-5]]
+==== Supporting 4" Retina Displays (iPhone 5)
+
+In order for your build to support iOS devices with 4" screens (for example, the iPhone 5), you must include a `Default-568h@2x.png` splashscreen image in your app.
+
+[[supporting-iphone-6-and-iphone-6-plus]]
+==== Supporting iPhone 6 and iPhone 6 Plus
+
+To avoid app zooming on iPhone 6 and iPhone 6 Plus, include `Default-667h.png`, `Default-736h.png`, and `Default-Landscape-736h.png` splashscreen images in your app.
+
+[[icons-for-spotlight-and-settings-optional]]
+=== Icons for Spotlight and Settings (Optional)
+
+The following table displays file names and paths to specific icons for Spotlight or settings as expected by the build farm. Binaries (or exports) compiled for iOS look for icon files in these locations to enable them. Note that the file names are case sensitive.
+
+[cols="5*",options="header"]
+|===
+| File name (case sensitive)  | Target(s)                              | OS Version            | Expected Location                      | Dimensions
+| `Icon-small.png`            | iPhone (Non-Retina)                    | iOS 7 or earlier      | `/www/res/icons/ios/Icon-small.png`    | 29 x 29
+| `Icon-small@2x.png`         | iPhone (Retina)                        | iOS 7 or earlier      | `/www/res/icons/ios/Icon-small@2x.png` | 58 x 58
+| `Icon-50.png`               | iPad (Non-Retina)                      | iOS 7 or earlier      | `/www/res/icons/ios/Icon-50.png`       | 50 x 50
+| `Icon-50@2x.png`            | iPad (Retina)                          | iOS 7 or earlier      | `/www/res/icons/ios/Icon-50@2x.png`    | 100 x 100
+| `Icon-40.png`               | iPad (Non-Retina)                      | iOS 7 or later        | `/www/res/icons/ios/Icon-40.png`       | 40 x 40
+| `Icon-40@2x.png`            | iPad (Retina), iPhone (Retina)         | iOS 7 or later        | `/www/res/icons/ios/Icon-40@2x.png`    | 80 x 80
+|===
+
+[[android]]
+== Android
+
+[[icons-1]]
+=== Icons
+
+The Android platform allows specifying image resources using qualifiers to provide the best possible image resources for a particular device. To support that, you can provide your app's image resources using qualifiers as well:
+
+[cols="4*",options="header"]
+|===
+| File name (case sensitive) | Expected Location                       | DPI            | Recommended Dimensions
+| `icon.png`                 | `/www/res/icons/android/icon.png`       | auto scale     | 48 x 48
+| `icon-ldpi.png`            | `/www/res/icons/android/icon-ldpi.png`  | ~120dpi        | 36 x 36
+| `icon-mdpi.png`            | `/www/res/icons/android/icon-mdpi.png`  | ~160dpi        | 48 x 48
+| `icon-hdpi.png`            | `/www/res/icons/android/icon-hdpi.png`  | ~240dpi        | 72 x 72
+| `icon-xhdpi.png`           | `/www/res/icons/android/icon-xhdpi.png` | ~320dpi        | 96 x 96
+|===
+
+NOTE: If none of the above icons are provided, a default set of icons will be included automatically. To avoid that, provide at lease one icon.
+
+[[splashscreen]]
+=== Splashscreen
+
+Similar to icons, you can use qualifiers for splashscreen images as well.
+
+[cols="4*",options="header"]
+|===
+| File name (case sensitive) | Expected Location                          | DPI            | Recommended Dimensions
+| `splash.png`               | `/www/res/splash/android/splash.png`       | auto scale     | 320 x 480
+| `splash-ldpi.png`          | `/www/res/splash/android/splash-ldpi.png`  | ~120dpi        | 240 x 320
+| `splash-mdpi.png`          | `/www/res/splash/android/splash-mdpi.png`  | ~160dpi        | 320 x 480
+| `splash-hdpi.png`          | `/www/res/splash/android/splash-hdpi.png`  | ~240dpi        | 480 x 800
+| `splash-xhdpi.png`         | `/www/res/splash/android/splash-xhdpi.png` | ~320dpi        | 640 x 960
+|===
+
+
+To make the same image fit different screen sizes, you can use http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch[nine-patch images^]. Follow the same conventions above to use nine-patch images, but use `.9.png` as the extension.
+
+You can use other qualifiers as part of the file name, for example, `icon-tvdpi.png`, `icon-small.png`, `icon-normal.png`, etc. More details about the available qualifiers can be found at http://developer.android.com/guide/topics/resources/providing-resources.html[Providing Resources^].
+
+[[windows-phone]]
+== Windows Phone
+
+[[icons-2]]
+=== Icons
+
+Only one small icon and one tile icon can be specified for the Windows Phone platform:
+
+[cols="3*",options="header"]
+|===
+| File name (case sensitive) | Expected Location                           | Recommended Dimensions
+| `icon.png`                 | `/www/res/icons/windowsphone/icon.png`      | 62 x 62
+| `icon-tile.png`            | `/www/res/icons/windowsphone/icon-tile.png` | 173 x 173
+|===
+
+NOTE: If none of the above icons are provided, a default set of icons will be included automatically. To avoid that, provide all icons.
+
+[[splashscreen-1]]
+=== Splashscreen
+
+[cols="3*",options="header"]
+|===
+| File name (case sensitive) | Expected Location                          | Recommended Dimensions
+| `splash.jpg`               | `/www/res/splash/windowsphone/splash.jpg` | 480 x 800
+|===
+
+[[additional-documentation]]
+=== Additional Documentation
+
+* https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/AppIcons.html#//apple_ref/doc/uid/TP40006556-CH19-SW1[Apple Developer Documentation - App Icon^]
+* https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/LaunchImages.html#//apple_ref/doc/uid/TP40006556-CH22-SW1_[Apple Developer Documentation - Launch Files^]
+* http://developer.android.com/guide/topics/resources/providing-resources.html[Android Providing Resources Guide^]

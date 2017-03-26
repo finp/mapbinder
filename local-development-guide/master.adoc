@@ -1,0 +1,32 @@
+include::shared/attributes.adoc[]
+
+= Local Development Guide
+
+[[local-development-guide-setting-up-fhc]]
+== Setting Up FHC
+
+include::install.adoc[leveloffset=+2]
+include::ssh_keys.adoc[leveloffset=+2]
+include::using_multiple_ssh_keys.adoc[leveloffset=+3]
+
+include::getting_started_fhc.adoc[leveloffset=+1]
+
+include::manage_projects.adoc[leveloffset=+1]
+
+include::develop_code.adoc[leveloffset=+1]
+
+[[local-development-guide-working-with-the-platform-using-fhc]]
+== Working With the Platform Using FHC
+
+include::fhc_apikeys.adoc[leveloffset=+2]
+include::fhc_create_a_service.adoc[leveloffset=+2]
+include::build_apps.adoc[leveloffset=+2]
+include::fhc_stats.adoc[leveloffset=+2]
+
+[[local-development-guide-working-with-forms-using-fhc]]
+== Working With Forms Using FHC
+
+include::fhc_create_an_appForms_project.adoc[leveloffset=+2]
+include::fhc_create_a_form.adoc[leveloffset=+2]
+include::fhc_create_a_form_submission.adoc[leveloffset=+2]
+include::fhc_create_a_form_theme.adoc[leveloffset=+2]

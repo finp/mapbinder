@@ -1,0 +1,502 @@
+include::shared/attributes.adoc[]
+
+[[provisioning-rhmap-core]]
+= Provisioning an {ProductShortName} 4.x Core in OpenShift 3
+
+[[provisioning-rhmap-core-prerequisites]]
+== Prerequisites
+
+This guide assumes several prerequisites are met before the installation:
+
+// TODO "Preparing Nodes for Core Installation" - should link to "Installing RHMAP guide"
+* All nodes in the cluster must be registered with the Red Hat Subscription Manager and have {ProductShortName} entitlement certificates downloaded. See link:{InstallingRHMAP}#preparing-infrastructure-for-installation[Preparing Infrastructure for Installation] for detailed steps.
+* Many Core components require direct outbound internet access to operate, make sure that all nodes have outbound internet access before installation. If you use a proxy for outbound internet access, note the proxy IP address and port, you will require both for configuration during the installation.
+* An existing OpenShift Enterprise installation, version 3.2.
+* A wildcard DNS entry must be configured for the OpenShift router IP address.
+* A trusted wildcard certificate must be configured for the OpenShift router. See https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/installation-and-configuration/chapter-2-installing#using-wildcard-certificates[Using Wildcard Certificates] in OpenShift documentation.
+* Administrative access to the OpenShift cluster via the `oc` cli tool. This user must be able to:
+** Create a `Project`, and any resource typically found in a `Project` (e.g. `DeploymentConfig`, `Service`, `Route`)
+** Edit a `Namespace` definition
+** Create a `SecurityContextConstraint`
+** Add a `Role` to a `User`
+** Manage Nodes, specifically `labels`
+
+For information on installation and management of an OpenShift cluster and its users, see the https://docs.openshift.com/enterprise[official OpenShift documentation^].
+
+[[provisioning-rhmap-core-installation]]
+== Installation
+
+The installation of a Core in OpenShift 3 results in all Core components running in Replication Controller backed Pods, with Persistent Volumes for Core data.
+
+The installation consists of several phases. Before the installation, you must prepare your OpenShift cluster:
+
+* Set up persistent storage -- you need to create Persistent Volumes to cover the Persistent Volume requirements of the Core.
+* Label the nodes -- nodes can be labeled if the Core components are to run on specific nodes.
+
+After the OpenShift cluster is properly configured:
+
+* Install the Core
+* Verify the installation
+
+[[before-the-installation]]
+=== Before The Installation
+
+The installation procedure poses certain requirements on your OpenShift cluster in order to guarantee fault tolerance and stability.
+
+[[install-openshift-templates-for-core-components]]
+==== Install OpenShift Templates for Core Components
+
+The Core is installed using a set of OpenShift templates.
+Get the templates by installing the RPM package `rhmap-fh-openshift-templates`.
+
+. Enable the _RHMAP 4.2 RPMs_ repository in RHEL.
++
+[source,bash]
+----
+subscription-manager repos --enable=rhel-7-server-rhmap-4.2-rpms
+----
+
+. Install `rhmap-fh-openshift-templates`
++
+[source,bash]
+----
+yum install rhmap-fh-openshift-templates
+----
+
+The following templates are installed into the `/opt/rhmap/templates/core` directory:
+
+* `fh-core-backend.json`
+* `fh-core-frontend.json`
+* `fh-core-infra.json`
+* `fh-core-monitoring.json`
+* `scc-anyuid-with-chroot.json`
+
+// TODO actually paste the contents here perhaps?
+include::core_persistent_volume_setup.adoc[leveloffset=+3]
+
+For detailed information on PersistentVolumes and how to create them, see https://docs.openshift.com/enterprise/3.2/architecture/additional_concepts/storage.html[Persistent Storage^] in the OpenShift Enterprise documentation.
+
+[[apply-node-labels]]
+==== Apply Node Labels
+
+You can skip this entire labeling section if your OpenShift cluster only has a single schedulable node.
+In such case, all Core components will run on that single node.
+
+It is recommended, but not required,
+to deploy the Core components to dedicated nodes, separate from other applications (such as the RHMAP MBaaS and Cloud Apps).
+
+To use an example, if you have two nodes where you would like the Core components to be deployed to, these two nodes should have a specific label e.g. `type=core`.
+You can check what `type` labels are applied to all nodes with the following command:
+
+[source,bash]
+----
+oc get nodes -L type
+----
+....
+NAME          STATUS                     AGE       TYPE
+ose-master    Ready,SchedulingDisabled   27d       master
+infra-1       Ready                      27d       infra
+infra-2       Ready                      27d       infra
+app-1         Ready                      27d       compute
+app-2         Ready                      27d       compute
+core-1        Ready                      27d
+core-2        Ready                      27d
+mbaas-1       Ready                      27d       mbaas
+mbaas-2       Ready                      27d       mbaas
+mbaas-3       Ready                      27d       mbaas
+....
+
+To add a `type` label to the `core-1` and `core-2` nodes, use the following command:
+[source,bash]
+----
+oc label node core-1 type=core
+oc label node core-2 type=core
+----
+
+Then, when creating the Core project set `type=core` label as the `node-selector`.
+
+[[installing-the-core]]
+=== Installing the Core
+
+In these steps, you will use the Core OpenShift templates to provision the Core to the OpenShift cluster using the `oc` command line tool.
+
+NOTE: For general information about the OpenShift CLI tool `oc`, see https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/cli-reference/chapter-4-developer-cli-operations[Developer CLI Operations^] in the OpenShift Enterprise documentation.
+
+[[create-a-new-project]]
+==== Create a New Project.
+
+Log in as the OpenShift administrator. You will be prompted for credentials.
+
+[source,bash]
+----
+oc login <public URL of the OpenShift master>
+----
+
+Create the project:
+
+[source,bash]
+----
+export CORE_PROJECT_NAME=rhmap-core
+oc new-project $CORE_PROJECT_NAME
+----
+
+[[set-node-selector-for-dedicated-nodes]]
+==== Set Node Selector For Dedicated Nodes
+
+This ensures that all Core components are deployed to the dedicated Core nodes.
+
+[NOTE]
+--
+If you've chosen *not* to have dedicated Core nodes, skip this step.
+--
+
+In the project's namespace, set the `openshift.io/node-selector` annotation to the selector chosen in the xref:apply-node-labels[] section, for example `type=core`:
+
+[NOTE]
+--
+You may need to add this annotation if it is missing.
+--
+
+[source,bash]
+----
+oc edit ns $CORE_PROJECT_NAME
+----
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+ annotations:
+   openshift.io/node-selector: type=core
+...
+----
+
+[[set-up-proxy-requirements]]
+==== Set Up Your Proxy for Outbound Internet Access
+
+{ProductShortName} can be configured to use a proxy for outbound internet access. Skip this step if you do not use a proxy.
+
+* Setup Socks Proxy
++
+Run the following commands using your socks proxy IP address and port:
+
+[source,bash]
+----
+export SOCKS_PROXY_HOST="<socks-proxy-ip/host>"
+export SOCKS_PROXY_PORT="<socks-proxy-port>"
+----
+
+* Setup Http Proxy
++
+Run the following commands using your http proxy IP address and port:
+
+[source,bash]
+----
+export PROXY_HOST="<http-proxy-ip/host-address>"
+export PROXY_PORT="<http-proxy-port>"
+export PROXY_URL="http://${PROXY_HOST}:${PROXY_PORT}"
+----
+
+If the proxy requires authentication, run the following commands using your http proxy username and password:
+
+[source,bash]
+----
+export PROXY_USER="<http-proxy-username>"
+export PROXY_PASS="<http-proxy-password>"
+export PROXY_URL="http://${PROXY_USER}:${PROXY_PASS}@${PROXY_HOST}:${PROXY_PORT}"
+----
+
+
+[[set-up-monitoring-components]]
+==== Set Up Monitoring Components
+
+Create a `ServiceAccount` for the monitoring container, and give it the `admin` role.
+
+[source,bash]
+----
+oc create serviceaccount nagios
+oc policy add-role-to-user admin -z nagios
+----
+
+Setup the monitoring parameters with SMTP server details. This is required to enable email alerting when a monitoring check fails. If you don't require email alerting or want to set it up at a later time, the sample values can be used.
+
+[source,bash]
+----
+export SMTP_SERVER="localhost"
+export SMTP_USERNAME="username"
+export SMTP_PASSWORD="password"
+export SMTP_FROM_ADDRESS="nagios@example.com"
+export RHMAP_ADMIN_EMAIL="root@localhost"
+----
+
+Create the Core monitoring resources.
+
+[source,bash]
+----
+oc new-app -f /opt/rhmap/templates/core/fh-core-monitoring.json \
+  -p SMTP_SERVER="${SMTP_SERVER}" \
+  -p SMTP_USERNAME="${SMTP_USERNAME}" \
+  -p SMTP_PASSWORD="${SMTP_PASSWORD}" \
+  -p SMTP_FROM_ADDRESS="${SMTP_FROM_ADDRESS}" \
+  -p RHMAP_ADMIN_EMAIL="${RHMAP_ADMIN_EMAIL}" \
+  -p RHMAP_HOSTGROUPS="core"
+----
+
+You can access and view the Nagios dashboard at this point. Some of the checks may pass at this point, however the majority will not pass until the installation is complete. The status of these checks can be useful if something has gone wrong during installation and needs troubleshooting.
+
+To access Nagios, follow the link:{OperationsGuide}#accessing-nagios-dashboard[Accessing the Nagios Dashboard] section in the Operations Guide.
+
+[[set-up-infrastructure-components]]
+==== Set Up Infrastructure Components
+
+Generate SSH keys for internal Git communication
+
+[source,bash]
+----
+ssh-keygen -q -N '' -C "repoadmin_id_rsa" -f "repoadmin_id_rsa"
+ssh-keygen -q -N '' -C "gitlab_shell_id_rsa" -f "gitlab_shell_id_rsa"
+----
+
+Create a `Secret` to store these SSH keys
+
+[source,bash]
+----
+oc secrets new gitlab-ssh repoadmin-id-rsa=repoadmin_id_rsa \
+                         repoadmin-id-rsa-pub=repoadmin_id_rsa.pub \
+                         gitlab-shell-id-rsa=gitlab_shell_id_rsa \
+                         gitlab-shell-id-rsa-pub=gitlab_shell_id_rsa.pub
+----
+
+Create a `SecurityContextConstraint` with the `anyuid` SCC and allows `chroot` inside containers. This is required to run some of the Core components.
+
+[source,bash]
+----
+oc create -f /opt/rhmap/templates/core/scc-anyuid-with-chroot.json
+----
+
+Add the new `SecurityContextConstraint` to the default `ServiceAccount` for the project.
+
+[source,bash]
+----
+oc adm policy add-scc-to-user \
+  anyuid-with-chroot system:serviceaccount:${CORE_PROJECT_NAME}:default
+----
+
+Create the Core infrastructure resources.
+
+[source,bash]
+----
+oc new-app -f /opt/rhmap/templates/core/fh-core-infra.json
+----
+
+It may take a few minutes for all pods to get to a `Running` state. Here is a sample output from the `oc get pods` command if everything was successful:
+
+....
+NAME                READY     STATUS      RESTARTS   AGE
+memcached-1-vvt7c   1/1       Running     0          5m
+mongodb-1-1-fnf7z   1/1       Running     0          5m
+mysql-1-iskrf       1/1       Running     0          5m
+nagios-1-mtg31      1/1       Running     0          20m
+redis-1-wwxzw       1/1       Running     0          5m
+....
+
+See the Troubleshooting guide if any pods are not in the correct state.
+// TODO: link to appropriate part of Troubleshooting guide
+
+[[set-up-back-end-components]]
+==== Set Up Back End Components
+
+Create the Core backend resources.
+
+[source,bash]
+----
+oc new-app -f /opt/rhmap/templates/core/fh-core-backend.json \
+  -p PROXY_HOST="${PROXY_HOST}" \
+  -p PROXY_PORT="${PROXY_PORT}" \
+  -p PROXY_URL="${PROXY_URL}" \
+  -p PROXY_USER="${PROXY_USER}" \
+  -p PROXY_PASS="${PROXY_PASS}" \
+  -p SOCKS_PROXY_HOST="${SOCKS_PROXY_HOST}" \
+  -p SOCKS_PROXY_PORT="${SOCKS_PROXY_PORT}"
+----
+
+It may take a few minutes for all pods to get up and running. Here is a sample output from the `oc get pods` command if everything was successful:
+
+....
+NAME                   READY     STATUS      RESTARTS   AGE
+fh-aaa-1-ey0kd         1/1       Running     0          2h
+fh-messaging-1-isn9f   1/1       Running     0          2h
+fh-metrics-1-cnfxm     1/1       Running     0          2h
+fh-scm-1-c9lhd         1/1       Running     0          2h
+fh-supercore-1-mqgph   1/1       Running     0          2h
+gitlab-shell-1-wppga   2/2       Running     0          2h
+memcached-1-vvt7c      1/1       Running     0          4h
+mongodb-1-1-fnf7z      1/1       Running     0          4h
+mysql-1-iskrf          1/1       Running     0          4h
+nagios-1-mtg31         1/1       Running     0          4h
+redis-1-wwxzw          1/1       Running     0          4h
+ups-1-bo8g8            1/1       Running     0          2h
+....
+
+See the Troubleshooting guide if any pods are not in the correct state.
+// TODO: link to appropriate part of Troubleshooting guide
+
+[[set-up-front-end-components]]
+==== Set Up Front End Components
+
+First, set up the environment variables required by the frontend template:
+
+. `GIT_EXTERNAL_HOST`
++
+The Core frontend resources need to know what route was exposed for the Core git service. To find this, get the `spec.host` value of the `git` route:
++
+[source,bash]
+----
+export GIT_EXTERNAL_HOST=`oc get route git --template="{{.spec.host}}"`
+echo $GIT_EXTERNAL_HOST
+----
+
+. `ROUTER_SUBDOMAIN`
++
+The frontend resources also need to know what the OpenShift Router subdomain value is set to.
+This can be seen in the OpenShift master config file `master-config.yaml` under `routingConfig.subdomain`.
+Alternatively, it can be determined based on what the `git` route was exposed as:
++
+[source,bash]
+----
+export ROUTER_SUBDOMAIN=`echo $GIT_EXTERNAL_HOST | cut -d "." -f 2-`
+echo $ROUTER_SUBDOMAIN
+----
++
+If you have any problems with the above command, or want to use the value retrieved from the `master-config.yaml`, you should manually export the value.
++
+[source,bash]
+----
+export ROUTER_SUBDOMAIN=<router-subdomain>
+----
+
+. SMTP server parameters
++
+The platform sends emails for user account activation, password recovery, form submissions, and other events. Set the following variables as appropriate for your environment.
++
+[source,bash]
+----
+export SMTP_SERVER="localhost"
+export SMTP_USERNAME="username"
+export SMTP_PASSWORD="password"
+export SMTP_PORT="25"
+export SMTP_AUTH="false"
+export SMTP_TLS="false"
+export EMAIL_REPLYTO="noreply@localhost"
+----
+
+. Build Farm parameters
++
+To determine the values for the `BUILDER_ANDROID_SERVICE_HOST` and `BUILDER_IPHONE_SERVICE_HOST` environment variables, contact link:https://access.redhat.com/support/[Red Hat Support^] asking for the {ProductShortName} Build Farm URLs that are appropriate for your region. Use these URLs to set the environment variables.
++
+[source,bash]
+----
+export BUILDER_ANDROID_SERVICE_HOST="<androidbuildfarmurl>"
+export BUILDER_IPHONE_SERVICE_HOST="<iphonebuildfarmurl>"
+----
+
+With the `GIT_EXTERNAL_HOST`, `ROUTER_SUBDOMAIN`, SMTP server variables, and Build Farm parameters set, you can create the Core frontend resources.
+
+[source,bash]
+----
+oc new-app -f /opt/rhmap/templates/core/fh-core-frontend.json \
+  -p CLUSTER_DOMAIN="$ROUTER_SUBDOMAIN" \
+  -p GIT_EXTERNAL_HOST="$GIT_EXTERNAL_HOST" \
+  -p SMTP_SERVER="${SMTP_SERVER}" \
+  -p SMTP_USERNAME="${SMTP_USERNAME}" \
+  -p SMTP_PASSWORD="${SMTP_PASSWORD}" \
+  -p EMAIL_REPLYTO="${EMAIL_REPLYTO}" \
+  -p SMTP_PORT="${SMTP_PORT}" \
+  -p SMTP_AUTH="${SMTP_AUTH}" \
+  -p SMTP_TLS="${SMTP_TLS}" \
+  -p BUILDER_ANDROID_SERVICE_HOST="${BUILDER_ANDROID_SERVICE_HOST}" \
+  -p BUILDER_IPHONE_SERVICE_HOST="${BUILDER_IPHONE_SERVICE_HOST}"
+----
+
+It may take a few minutes for pods to get up and running. Here is a sample output from the `oc get pods` command if everything was successful:
+
+....
+NAME                   READY     STATUS      RESTARTS   AGE
+fh-aaa-1-ey0kd         1/1       Running     0          3h
+fh-appstore-1-ok76a    1/1       Running     0          6m
+fh-messaging-1-isn9f   1/1       Running     0          3h
+fh-metrics-1-cnfxm     1/1       Running     0          3h
+fh-ngui-1-mosqj        1/1       Running     0          6m
+fh-scm-1-c9lhd         1/1       Running     0          3h
+fh-supercore-1-mqgph   1/1       Running     0          3h
+gitlab-shell-1-wppga   2/2       Running     0          3h
+memcached-1-vvt7c      1/1       Running     0          4h
+millicore-1-pkpwv      3/3       Running     0          6m
+mongodb-1-1-fnf7z      1/1       Running     0          4h
+mysql-1-iskrf          1/1       Running     0          4h
+nagios-1-mtg31         1/1       Running     0          5h
+redis-1-wwxzw          1/1       Running     0          4h
+ups-2-mdnjt            1/1       Running     0          4m
+....
+
+See the Troubleshooting guide if any pods are not in the correct state.
+// TODO: link to appropriate part of Troubleshooting guide
+
+[[verify-core-installation]]
+=== Verifying The Installation
+
+. Verify all Nagios checks are passing
++
+If you don't already have the Nagios Dashboard open, the `URL` for it can be retrieved using this command:
++
+[source,bash]
+----
+oc get route nagios --template "https://{{.spec.host}}"
+----
+The username and password are stored in the `NAGIOS_USERNAME` and `NAGIOS_PASSWORD` environment variables of the `nagios` `DeploymentConfig`. To view these values, use this command:
++
+[source,bash]
+----
+oc env dc/nagios --list | grep NAGIOS
+----
++
+....
+NAGIOS_USER=nagiosadmin
+NAGIOS_PASSWORD=password
+....
++
+After logging in to the Nagios Dashboard, all checks under the `Services` left-hand menu should be `OK`.
+If any of these checks are not in an `OK` state, please check the Troubleshooting guide on how to fix them.
+// TODO: link to appropriate part of Troubleshooting guide
+
+. Log in to the Studio
++
+To retrieve the `URL` for the Core Studio, use the following command:
++
+[source,bash]
+----
+oc get route rhmap --template "https://{{.spec.host}}"
+----
++
+The Admin username and password are set in the `millicore` `DeploymentConfig`. To view them use this command:
++
+[source,bash]
+----
+oc env dc/millicore --list| grep FH_ADMIN
+----
++
+....
+FH_ADMIN_USER_PASSWORD=password
+FH_ADMIN_USER_NAME=rhmap-admin@example.com
+....
++
+If you are unable to login to the Studio, please check the Troubleshooting guide on how to fix this.
+// TODO: link to appropriate part of Troubleshooting guide
+
+== Next Steps
+
+// TODO: MBaaS, Environment, Users setup links
+
+* Adjusting System Resource Usage of the Core - we *strongly recommend* that you adjust the system resource usage of Core components as appropriate for your production environment
+* Optional: Set up centralized logging - deploy a centralized logging solution based on ElasticSearch, Fluentd, and Kibana

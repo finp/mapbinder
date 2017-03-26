@@ -1,0 +1,55 @@
+include::shared/attributes.adoc[]
+
+[[migrating-from-fh-nodeapp-fh-webappfh-api-to-fh-mbaas-apifh-mbaas-express]]
+= Migrating from fh-nodeapp & fh-webapp/fh-api to fh-mbaas-api/fh-mbaas-express
+
+`fh-nodeapp` & `fh-webapp`/`fh-api` are now deprecated in favour of `fh-mbaas-api`/`fh-mbaas-express`. `fh-mbaas-api` and `fh-mbaas-express` contain all the existing functionality found in `fh-nodeapp` and `fh-webapp`/`fh-api`, as well as new additional features, such as support for Data Browser and Forms.
+
+The following outlines the migration steps to move from `fh-nodeapp` or `fh-webapp`/`fh-api` to `fh-mbaas-api` and `fh-mbaas-express`. Also, the https://github.com/feedhenry-templates/helloworld-cloud[Hello World Cloud^] Template is a good example of a minimal `fh-mbaas-api`/`fh-mbaas-express` Application, and is a good reference when migrating your App to `fh-mbaas-api`/`fh-mbaas-express`.
+
+[[change-package-json]]
+== Change package.json
+
+Update `package.json`:
+
+. Remove `fh-nodeapp` or fh-webapp/fh-api and replace with the latest version of fh-mbaas-api as found in https://github.com/feedhenry-templates/helloworld-cloud/blob/master/package.json[The Hello World Package.js file^] - for example,:
++
+[source,javascript]
+----
+"fh-mbaas-api" : "~4.5.0"
+----
+
+. You also need to explicitly include http://expressjs.com[Express^] now also:
++
+[source,javascript]
+----
+"express": "~4.0.0",
+"body-parser": "~1.0.2",
+"cors": "~2.2.0"
+----
+
+. Finally, run `npm install`.
+
+[[change-cloud-code-to-replace-fh-with-fh]]
+== Change cloud code to replace $fh with fh
+
+There is no longer a global `$fh`, you can create one if you want but it's recommended to replace with `fh` instead:
+
+. In `lib/main.js`, add `var fh = require('fh-mbaas-api');`.
+. Replace usages of `$fh` with `fh`.
+. Repeat for all files that use `$fh`.
+
+[[change-application-js]]
+== Change application.js
+
+Your `application.js` file is considerably different for fh-mbaas-api/fh-mbaas-express. It is recommended that you replace your existing `application.js` with the https://github.com/feedhenry-templates/helloworld-cloud/blob/master/application.js[latest application.js file from the Hello World template app^] as this will always be the most up to date version
+
+[[use-grunt]]
+== Use Grunt
+
+This is optional but highly recommended: the newer FeedHenry Templates all make heavy use of Grunt, both for link:{LocalDevelopmentGuide}#developing-code-locally[Local Development] and to help with best practices for testing.
+
+To use Grunt in your App, it's best to copy the relevant Grunt parts of the https://github.com/feedhenry-templates/helloworld-cloud[Hello World Cloud^] Template:
+
+. Copy the following Gruntfile into the root of your own App: https://github.com/feedhenry-templates/helloworld-cloud/blob/master/Gruntfile.js
+. Copy the 'devDependencies' from this package.json into your own package.json: https://github.com/feedhenry-templates/helloworld-cloud/blob/master/package.json. Run `npm install` when you're done.

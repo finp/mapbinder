@@ -1,0 +1,82 @@
+include::shared/attributes.adoc[]
+
+[[ssh-key-setup]]
+= SSH Key Setup
+
+.Overview
+
+Before you can clone a git repo, you must first upload your SSH public key (for more information on Public-key cryptography, check out this http://en.wikipedia.org/wiki/Public-key_cryptography[Wikipedia article^]).
+
+This tutorial will show you how to generate a public/private key pair (if required) and upload the SSH Public Key to the Platform via FHC.
+
+.Requirements
+You should xref:installing-fhc[install FHC] before completing this tutorial.
+
+[[checking-for-an-existing-key]]
+== Checking for an existing Key
+
+To check whether or not an SSH key has been generated, open `Terminal` on Linux or Mac, or `Git Bash` on Windows.
+
+Enter `ls -la ~/.ssh`
+
+This will list the files in the .ssh directory. If you do not see either of these files, then proceed to xref:generating-an-ssh-public-key[Generating an SSH Public Key], as you must generate an SSH public key. If you see files named either _id_rsa.pub_ or __id_dsa.pub__, then the key has been generated and you can skip to xref:adding-an-ssh-public-key-to-the-platform-via-fhc[Adding an SSH Public Key to the Platform via FHC].
+
+[[generating-an-ssh-public-key]]
+== Generating an SSH Public Key
+
+In order to generate a key, we will use a tool called http://en.wikipedia.org/wiki/Ssh-keygen[ssh-keygen^].
+Open `Terminal` on Linux or Mac, or `Git Bash` on Windows.
+
+Enter the following:
+
+[source,bash]
+----
+ssh-keygen -t rsa -C "your_email_address@example.com"
+----
+
+After you have entered this command you will be asked where to save the key. Press the enter key to use the default location.
+
+You will then be prompted to enter and confirm a password for the private key. When complete, the public & private key should be written to `~/.ssh/id_rsa.pub` & `~/.ssh/id_rsa`.
+
+[[adding-an-ssh-public-key-to-the-platform-via-fhc]]
+== Adding an SSH Public Key to the Platform via FHC
+
+Using FHC, log in to the Platform. When adding a public key, you must specify both a name and a key file. To add a key, enter the following command:
+
+[source,bash]
+----
+fhc keys ssh add <label> <key-file>
+----
+
+For example:
+
+[source,bash]
+----
+fhc keys ssh add myKey ~/.ssh/id_rsa.pub
+----
+
+You can verify that the key has been added correctly by listing out all ssh keys for the user.
+
+[source,bash]
+----
+fhc keys ssh
+----
+
+You should now be able to see your recently added key.
+
+NOTE: If you need to use multiple SSH keys, follow our link:{LocalDevelopmentGuide}#using-multiple-ssh-keys-for-different-domainsprojects[guide for configuring your local SSH to use multiple keys].
+
+[[adding-an-ssh-public-key-to-the-platform-via-studio]]
+== Adding an SSH Public Key to the Platform via Studio
+
+Follow these steps to add your public SSH key to the Platform using the Studio:
+
+. Log into the Studio.
+. Click on the portrait button located on the top right of the screen.
+. Select `Settings`.
+. Select `SSH Key Management`. A list of previously uploaded SSH Keys will be displayed.
+. Select `Add New Key`.
+. Paste your public key into the `Public Key` field.
+. Select `Upload Public Key`.
+
+You should now be able to see your recently added key in the list of keys.

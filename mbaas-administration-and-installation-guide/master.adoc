@@ -1,0 +1,13 @@
+include::shared/attributes.adoc[]
+
+= MBaaS Administration and Installation Guide
+
+include::mbaas_4x_intro.adoc[leveloffset=+1]
+include::mbaas_installation_overview.adoc[leveloffset=+1]
+include::mbaas_manual_provision_openshift3.adoc[leveloffset=+1]
+include::mbaas_resource_limits_and_quotas.adoc[leveloffset=+1]
+include::mbaas_smtp_notifications.adoc[leveloffset=+1]
+include::mbaas_backup_procedure.adoc[leveloffset=+1]
+include::mbaas_restore_backup_procedure.adoc[leveloffset=+1]
+include::mbaas_proxy_setup.adoc[leveloffset=+1]
+include::mbaas_troubleshooting.adoc[leveloffset=+1]

@@ -1,0 +1,186 @@
+include::shared/attributes.adoc[]
+
+[[getting-started-fhc]]
+= Getting Started with FHC
+
+This document helps you get started with creating a Project in the {ProductName} ({ProductShortName}) via the {ProductShortName} command line tool (fhc). This document will step you through how to create a new Project based on a sample template provided. Once that project has been created you will use fhc to clone the project to your local machine, npm to install dependencies for local development and grunt to start your new Hybrid Client App and Node.js Cloud App locally for development via the browser.
+
+.Video Tutorial
+
+* http://vimeo.com/97337585[{ProductShortName} - Create an App^]
+
+.Prerequisites
+
+* xref:installing-fhc[]
+* xref:ssh-key-setup[]
+* Node.js and Git installed locally
+
+[[targeting-your-domain]]
+== Targeting your domain
+
+First you will need to target your {ProductShortName} domain via the command line.
+Open a command line application e.g. Terminal on Linux & MacOS, or a command prompt for Windows.
+Enter the following command, replacing `<domain-url>` with the URL of your domain.
+
+[source,bash]
+----
+fhc target <domain-url>
+----
+
+Next you will be required to enter in your {ProductShortName} credentials. Enter the following command and replace `email or alias` with your username or email address.
+
+[source,bash]
+----
+fhc login
+Username : <email or alias>
+----
+
+Next you will be required to enter your `password`.
+
+....
+Password : <enter password>
+....
+
+You have now logged into the {ProductShortName} domain you have targeted.
+
+[[creating-your-project]]
+== Creating your Project
+
+Before we create our project, let us take a look at some sample project templates provided by the Platform. Enter the next command to see list of project templates available.
+
+[source,bash]
+----
+fhc templates projects
+----
+
+For the purpose of this guide we will be using the Hello World Project template.
+
+Now we are going to create a new Project via command line, based on the `hello_world_project template` provided. Enter the following command to create a new Project in the Platform. Replace the `project name` with a desired name of your choice. Once successful a JSON response will be print to screen. This JSON object contains all project information. Find the project GUID and copy for next step.
+
+[source,bash]
+----
+fhc projects create <project name> hello_world_project
+----
+
+NOTE: Notice we are passing in the name of the template to create the project from as the last param.
+
+This command will take a short time to complete. This is the JSON response that will be returned containing all information about the project you have just created.
+
+If at any time you need to review your project information you can do this by entering the next command, replacing `project guid` the project ID you copied in the previous step.
+
+[source,bash]
+----
+fhc projects read <project guid>
+----
+
+This command will return the JSON object shown in the last step, containing all project information. See below.
+
+[source,javascript]
+----
+{
+  "type": "PROJECT",
+  "template": null,
+  "sysCreated": 1397636395777,
+  "guid": "jJHtgZXQPJxXDFJO2pQzMP-d",
+  // ...
+  "apps": [
+    {
+      "type": "client_hybrid",
+      "description": "",
+      "domain": "testing",
+      "template": null,
+      "email": "joebloggs@feedhenry.com",
+      //...
+    }
+  ],
+  "templateId": "default",
+  "jsonTemplateId": "hello_world_project"
+}
+----
+
+Now that you have created you project in the cloud we are going to clone the entire project to your local machine. This step is chaining 3 commands to copy project to local machine. Replace the `project name` with the name you provide in step 3. Replace `project guid` with the ID that you copied in step 3.
+
+[source,bash]
+----
+mkdir <project name> ; cd <project name> ; fhc projects clone <project guid>
+----
+
+Now, we will have a look at the MBaaS example or Cloud App. Enter the next command replacing the `project name` with your project name.
+
+[source,bash]
+----
+cd <project name>-Hello-World-MBaaS-Instance ; ls -l
+----
+
+Next we will install any dependencies for the Cloud App. Enter the next command to install dependencies via npm, and and the grunt command line interface globally.
+
+[source,bash]
+----
+npm install
+[sudo] npm install -g grunt-cli
+----
+
+Your Cloud App instance is now ready to be deployed locally on your machine.
+
+[[deploy-cloud-app]]
+== Deploy Cloud app
+
+To start your cloud server locally enter the following command.
+
+[source,bash]
+----
+grunt serve
+----
+
+You should see some information output to the console to indicated that the Cloud App is running via a `port 8001` on your machine. To test that cloud instance is running locally enter the following curl request to your localhost.
+
+[source,bash]
+----
+curl http://localhost:8001/cloud/hello?hello=world
+----
+
+And you should receive a response similar to...
+
+[source,json]
+----
+{
+  "msg":"Hello world"
+}
+----
+
+If you received the above response from this curl attempt, your Cloud App is running locally. Now let us get our client side app running locally.
+
+[[deploy-client-app]]
+== Deploy Client App
+
+Next we will change directory to the Client App. Notice the following command is also a chained command. The first moves back up a level of the directory tree, the next changes down to the client directory and finally we list contents of directory.
+
+[source,bash]
+----
+cd .. ;  cd < project name >-Hello-World-Client ; ls -l
+----
+
+Remember to replace `project name` with the name of your project.
+
+Next we will install all dependencies for the Client App using npm. To do so, enter the following command.
+
+[source,bash]
+----
+npm install .
+----
+
+Your client side app is now ready to be deployed locally, we can run our Client App locally by entering the following command.
+
+[source,bash]
+----
+grunt serve:local
+----
+
+A window will open in your default browser once the previous command has been successful.
+
+[[getting-started-fhc-summary]]
+== Summary
+
+The Platform hosts all Git repositories. This means that when creating any project the apps within this project will have its own Git repo. You can perform normal Git procedures and processes by changing directory into either the Client or Cloud App examples.
+
+You are now setup to develop your {ProductShortName} project locally.

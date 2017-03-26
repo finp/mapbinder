@@ -1,0 +1,114 @@
+include::shared/attributes.adoc[]
+
+// TODO: needs review - some duplication from MBaaS troubleshooting, maybe both should be merged into troubleshooting guide
+[[troubleshooting-the-rhmap-3-x-core]]
+= Troubleshooting the {ProductShortName} Core
+
+[[troubleshooting-overview]]
+== Overview
+
+This document provides information on how to identify, debug, and resolve possible issues that can be encountered during installation and usage of the {ProductShortName} Core on OpenShift 3.
+
+[[check-the-nagios-dashboard]]
+== Check the Nagios Dashboard
+
+The first step to check whether the Core is running correctly is to check whether the Nagios
+dashboard is reporting any issues, see link:{OperationsGuide}#monitoring-rhmap-with-nagios[how to access Nagios].
+You will find more information on how to troubleshoot any issues discovered by Nagios in the
+Nagios troubleshooting information.
+
+[[analyze-logs]]
+== Analyze Logs
+
+To see the logging output of individual Core components, you must configure centralized logging in your OpenShift cluster. See link:{OperationsGuide}#centralized-logging-for-components[Centralized Logging for Core Components] for a detailed procedure.
+
+The section link:{OperationsGuide}#identifying-issues-in-core[Identifying Issues in a Core] provides guidance on discovering Core failures by searching and filtering its logging output.
+
+The section link:{OperationsGuide}#identifying-issues-in-mbaas[Identifying Issues in an MBaaS] provides guidance in discovering if the issues you are facing are originating in the MBaaS.
+
+[[common-problems]]
+== Common Problems
+
+=== OpenShift Cleans Persistent Volume too Early
+When a pod is started that takes some time to get running, the automatic PV cleaner can see
+the unused mount points in the pod and delete them even though are in fact going to be used
+in the future.
+
+This issue is caused due to Persistent Volume Claims being added to the list of volumes to
+preserve rather than the actual name of the Persistent Volume associated with the Persistent
+Volume Claim.
+
+As a result, the periodic cleanup process would unmount the volume if a pod utilizing the
+Persistent Volume Claim had not yet entered running state.
+
+The issue is logged in Bugzilla and has been marked as closed so should be resolved in a
+future release of Kubernetes.
+
+=== Kubernetes Pods Stuck Terminating
+
+For example,
+[source,bash]
+----
+oc get po
+NAME                   READY     STATUS        RESTARTS   AGE
+fh-messaging-1-gzlw6   0/1       Terminating   0          1h
+mongodb-1-1-2pqbq      0/1       Terminating   0          1h
+mongodb-initiator      1/1       Terminating  3 0          1h
+----
+Solution is to force delete the pods:
+[source,bash]
+----
+$ oc delete pod fh-messaging-1-gzlw6 --grace-period=0
+pod "fh-messaging-1-gzlw6" deleted
+$ oc delete pod mongodb-1-1-2pqbq --grace-period=0
+pod "mongodb-1-1-2pqbq" deleted
+$ oc delete pod mongodb-initiator --grace-period=0
+pod "mongodb-initiator" deleted
+----
+
+=== Unable to mount volumes for pod - unsupported volume type
+
+The full error in the oc get events log is:
+[source,bash]
+----
+1m   3s  8  mongodb-2-1-qlgwl Pod  FailedMount  {kubelet 10.10.0.99} Unable to mount volumes for pod "mongodb-2-1-qlgwl_qe-3node-rhmap4(f7898df8-41ce-11e6-9064-0abb8905d551)": unsupported volume type
+1m   3s  8  mongodb-2-1-qlgwl Pod  FailedSync   {kubelet 10.10.0.99} Error syncing pod, skipping: unsupported volume type
+----
+The problem here is the PVC is being bound to an already bound Persistent Volume
+(in another namespace)
+[source,bash]
+----
+$ oc get pvc mongodb-claim-2 -n qe-3node-rhmap4
+mongodb-claim-2   <none>    Bound     pveleven   50Gi       RWO           3h
+
+$ oc get pv pveleven
+NAME       CAPACITY   ACCESSMODES   STATUS    CLAIM                                 REASON    AGE
+pveleven   50Gi       RWO           Bound     qe-3node-rhmap410-1/mongodb-claim-2             4d
+----
+
+Notice the CLAIM is a different namespace i.e qe-3node-rhmap410-1, not qe-3node-rhmap4.
+This is usually the result of a project being created with a name that already existed,
+but was deleted. When deleting a project in OpenShift, it doesn't do a hard delete
+straight away. Rather, it marks a bunch of resources for deletion. This can cause unusual
+behaviour (such as this) if some resources still exist when the new project with the same
+name is created, and kubernetes thinks the resources marked for deletion actually belong
+to the new project.
+
+The solution in this case was to remove the PVC, then recreate it, allowing it to Bind to
+a new PV.
+[source,bash]
+----
+oc export pvc mongodb-claim-2 -o yaml > mongodb-claim-2.yaml
+oc delete pvc mongodb-claim-2
+oc create -f ./mongodb-claim-2.yaml
+----
+
+[[contacting-support]]
+== Contacting Support
+If all else fails, you can contact Red Hat Support for more assistance. Including a
+`fh-system-dump-tool` report will help the support team arrive at a solution
+more rapidly.
+
+The `fh-system-dump-tool` will search your installation for frequently found issues and also
+create a tar.gz archive containing all the recent logs and errors it can find. More
+information on this can be found link:{OperationsGuide}#fh-system-dump-tool[here].

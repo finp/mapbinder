@@ -1,0 +1,42 @@
+include::shared/attributes.adoc[]
+
+= Mobile Developer Guide
+
+[[mobile-developer-guide-android]]
+== Android
+include::deploying_apps_on_android.adoc[leveloffset=+2]
+
+[[mobile-developer-guide-ios]]
+== iOS
+include::deploying_apps_on_ios.adoc[leveloffset=+2]
+
+[[mobile-developer-guide-windows]]
+== Windows
+include::deploying_apps_on_wp8.adoc[leveloffset=+2]
+include::windows_platform_support.adoc[leveloffset=+2]
+include::windows_forms_apps_tutorial.adoc[leveloffset=+2]
+
+[[mobile-developer-guide-forms]]
+== Forms
+include::app_forms_integration.adoc[leveloffset=+2]
+include::forms_support_openshift.adoc[leveloffset=+2]
+
+[[mobile-developer-guide-developing-client-apps]]
+== Developing Client Apps
+include::app_development_angular.adoc[leveloffset=+2]
+include::app_development_backbone.adoc[leveloffset=+2]
+include::app_development_ionic.adoc[leveloffset=+2]
+// RHMAP-12235
+// include::app_development_push.adoc[leveloffset=+2]
+include::using_cordova_plugins.adoc[leveloffset=+2]
+include::secure_keys.adoc[leveloffset=+2]
+include::debugging.adoc[leveloffset=+2]
+// RHMAP-7743
+
+[[mobile-developer-guide-publishing-apps]]
+== Publishing Apps
+
+include::submitting_android.adoc[leveloffset=+2]
+include::submitting_ios.adoc[leveloffset=+2]
+// include::submitting_rhmap.adoc[leveloffset=+2]
+include::credentials.adoc[leveloffset=+2]

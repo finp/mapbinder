@@ -1,0 +1,45 @@
+include::shared/attributes.adoc[]
+
+= Server-side Developer Guide
+
+[[server-side-developer-guide-developing-cloud-apps]]
+== Developing Cloud Apps
+
+include::cloud_development.adoc[leveloffset=+2]
+include::environments.adoc[leveloffset=+2]
+include::using_nodejs_modules.adoc[leveloffset=+2]
+include::npm.adoc[leveloffset=+2]
+include::node_version.adoc[leveloffset=+2]
+
+[[server-side-developer-guide-using-rhmap-features-in-cloud-apps]]
+== Using RHMAP Features in Cloud Apps
+
+include::api_mapper.adoc[leveloffset=+2]
+include::sync_service.adoc[leveloffset=+2]
+include::using_push_notifications.adoc[leveloffset=+2]
+include::create_forms_data_source.adoc[leveloffset=+2]
+include::stats.adoc[leveloffset=+2]
+
+[[server-side-developer-guide-integrating-rhmap-with-other-services]]
+== Integrating RHMAP With Other Services
+
+include::using_saml_for_authentication.adoc[leveloffset=+2]
+include::openshift_online_code_staging.adoc[leveloffset=+2]
+include::auth_policy_oauth_google.adoc[leveloffset=+2]
+include::openstack_storage.adoc[leveloffset=+2]
+
+[[server-side-developer-guide-storing-data]]
+== Storing Data
+
+include::accessing-the-database.adoc[leveloffset=+2]
+include::databrowser.adoc[leveloffset=+2]
+include::appdata_export.adoc[leveloffset=+2]
+include::appdata_import.adoc[leveloffset=+2]
+
+include::app_import.adoc[leveloffset=+1]
+
+[[project-manager-guide-migrating-from-older-versions-of-rhmap]]
+== Migrating from Older Versions of RHMAP
+
+include::nodeapp_and_webapp_to_mbaas.adoc[leveloffset=+2]
+include::teams_migration.adoc[leveloffset=+2]

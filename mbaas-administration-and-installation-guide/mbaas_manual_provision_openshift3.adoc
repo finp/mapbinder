@@ -1,0 +1,620 @@
+include::shared/attributes.adoc[]
+
+[[provisioning-an-rhmap-4-x-mbaas-in-openshift-3]]
+= Provisioning an {ProductShortName} 4.x MBaaS in OpenShift 3
+
+[[manual-provision-overview]]
+== Overview
+
+An OpenShift 3 cluster can serve as an MBaaS target and host your Cloud Apps and Cloud Services. This guide provides detailed steps to deploy the {ProductShortName} 4.x MBaaS on an OpenShift 3 cluster.
+
+You can choose a simple automated installation to preview and test the MBaaS,
+or follow the manual installation steps for a fully supported production-ready MBaaS:
+
+* xref:automatic-installation[*Automatic Installation*]
++
+You can quickly try the RHMAP 4.x MBaaS by choosing the automatic installation.
++
+The following limitations apply to the automatically installed MBaaS:
++
+** **not** suitable for production use
+** single replica for each MBaaS component
+** single MongoDB replica with no persistent storage
+
+* xref:manual-installation[*Manual Installation*]
++
+For production use, follow the manual installation procedure, which results in an MBaaS with the following characteristics:
++
+** suitable for production use
+** three replicas defined for each MBaaS component (with the exception of `fh-statsd`)
+** three MongoDB replicas with a 50GB persistent storage requirement each
+*** nodeSelectors of `mbaas_id=mbaas1`, `mbaas_id=mbaas2`, and `mbaas_id=mbaas3` for the MongoDB replicas
+
+[[manual-provision-prerequisites]]
+== Prerequisites
+
+This guide assumes several prerequisites are met before the installation:
+
+* All nodes in the cluster must be registered with the Red Hat Subscription Manager and have {ProductShortName} entitlement certificates downloaded. See link:{InstallingRHMAP}#preparing-infrastructure-for-installation[Preparing Infrastructure for Installation] for detailed steps.
+* The MBaaS requires outbound internet access to perform npm installations, make sure that all relevant nodes have outbound internet access before installation. If you use a proxy, see the appropriate step in the xref:mbaas-installation[MBaaS Installation] procedure.
+* An existing OpenShift  installation, version {SupportedOCPVersion}.
+* The OpenShift master and router must be accessible from the {ProductShortName} Core.
+* A wildcard DNS entry must be configured for the OpenShift router IP address.
+* A trusted wildcard certificate must be configured for the OpenShift router. See https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/installation-and-configuration/chapter-2-installing#using-wildcard-certificates[Using Wildcard Certificates] in OpenShift documentation.
+* Image streams and images in the `openshift` namespace must be updated to the latest version. Refer to sections https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/installation-and-configuration/chapter-3-upgrading#updating-the-default-image-streams-and-templates[3.3.8. Updating the Default Image Streams and Templates] and https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/installation-and-configuration/chapter-3-upgrading#importing-the-latest-images[3.3.9. Importing the Latest Images] in the OpenShift 3.2 Installation and Configuration guide.
+* You must have administrative access to the OpenShift cluster using the `oc` CLI tool, enabling you to:
+** Create a _project_, and any resource typically found in a project (for example, _deployment configuration_, _service_, _route_).
+** Edit a _namespace_ definition.
+** Create a _security context constraint_.
+** Manage nodes, specifically _labels_.
+
+For information on installation and management of an OpenShift cluster and its users, see the https://docs.openshift.com/enterprise[official OpenShift documentation^].
+
+[[automatic-installation]]
+== Automatic Installation
+
+The automatic installation of an MBaaS in OpenShift 3 results in the MBaaS components being installed on nodes chosen by the OpenShift scheduler. Only a single instance of each component runs at any time and thus makes the MBaaS susceptible to downtime in case of failure of a single node. The data of the MongoDB database is not backed by any permanent storage and is therefore transient.
+
+WARNING: The automatic installation procedure must not be used in production environments. You should only use this procedure for evaluation purposes, since the provided template is not optimized for resiliency and stability required in production environments. Follow the xref:manual-installation[manual installation] steps for production use.
+
+There are no setup steps required before the automatic installation. Refer to xref:creating-an-mbaas-target[Creating an MBaaS Target] to continue the installation.
+
+NOTE: In order for automatic MBaaS installation to work, the OpenShift SDN must be configured to use the `ovs-subnet` SDN plugin (this is the default). If it is not set to this, refer to xref:network-configuration[Network Configuration].
+
+[[manual-installation]]
+== Manual Installation
+
+The manual installation of an MBaaS in OpenShift 3 results in a resilient three-node cluster:
+
+* MBaaS components are spread across all three nodes.
+* MongoDB replica set is spread over three nodes.
+* MongoDB data is backed by persistent volumes.
+* A Nagios service with health checks and alerts is set up for all MBaaS components.
+
+The installation consists of several phases. Before the installation, you must prepare your OpenShift cluster:
+
+* xref:persistent-storage-setup[Set up persistent storage] - you need to create Persistent Volumes with specific parameters in OpenShift.
+* xref:apply-node-labels[Label the nodes] - nodes need to be labeled in a specific way, to match the node selectors expected by the OpenShift template of the MBaaS.
+* xref:network-configuration[Network Configuration] - configuring the SDN network plugin used in OpenShift so that Cloud Apps can communicate with MongoDB in the MBaaS.
+
+After the OpenShift cluster is properly configured:
+
+* xref:manual-provision-installing-the-mbaas[Install the MBaaS from a template]
+* xref:verifying-the-installation[Verify the installation]
+
+[[before-the-installation]]
+=== Before The Installation
+
+The manual installation procedure poses certain requirements on your OpenShift cluster in order to guarantee fault tolerance and stability.
+
+[[network-configuration]]
+==== Network Configuration
+
+Cloud Apps in an MBaaS communicate directly with a MongoDB replica set. In order for this to work, the OpenShift SDN must be configured to use the `ovs-subnet` SDN plugin. For more detailed information on configuring this, see https://docs.openshift.com/enterprise/3.2/install_config/configuring_sdn.html#migrating-between-sdn-plugins[Migrating Between SDN Plug-ins^] in the OpenShift Enterprise documentation.
+
+[[making-project-networks-global]]
+===== Making Project Networks Global
+
+If you cannot use the `ovs-subnet` SDN plugin, you must make the network of the MBaaS project global after installation. For example, if you use the `ovs-multitenant` SDN plugin, projects must be configured as global. The following command is an example of how to make a project global:
+
+[source,bash]
+----
+oadm pod-network make-projects-global live-mbaas
+----
+
+To determine if projects are global, use the following command:
+
+[source,bash]
+----
+oc get netnamespaces
+----
+
+In the output, any projects that are configured global have namespaces with a value of "0"
+
+NOTE: If a project network is configured as global, you cannot reconfigure it to reduce network accessibility.
+
+For further information on how to make projects global, see https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/cluster-administration/chapter-18-managing-pod-networks[Making Project Networks Global^] in the OpenShift Enterprise documentation.
+
+[[persistent-storage-setup]]
+==== Persistent Storage Setup
+
+//RHMAP-11263
+
+[NOTE]
+--
+Ensure that any NFS server and shares that you use are configured according to the
+ https://access.redhat.com/documentation/en/openshift-container-platform/3.4/single/installation-and-configuration/#install-config-persistent-storage-persistent-storage-nfs[OpenShift
+ documentation for configuring NFS PersistentVolumes]. See the link:{TroubleshootingGuide}#troubleshooting-nfs-issues[Troubleshooting NFS Issues] section for more information on configuring NFS.
+--
+
+Some components of the MBaaS require persistent storage. For example, MongoDB for storing databases, and Nagios for storing historical monitoring data.
+
+As a minimum, make sure your OpenShift cluster has the following persistent volumes in an `Available` state, with at least the amount of free space listed below:
+
+* Three *50 GB* persistent volumes, one for each MongoDB replica
+* One *1 GB* persistent volume for Nagios
+
+
+For detailed information on PersistentVolumes and how to create them, see https://docs.openshift.com/enterprise/3.2/architecture/additional_concepts/storage.html[Persistent Storage^] in the OpenShift Enterprise documentation.
+
+[[apply-node-labels]]
+==== Apply Node Labels
+
+By applying labels to OpenShift nodes,
+you can control which nodes the MBaaS components, MongoDB replicas and Cloud Apps will be deployed to.
+
+This section describes the considerations for:
+
+* xref:labelling-for-mbaas-components[]
+* xref:labelling-for-mongodb-replicas[]
+
+Cloud apps get deployed to nodes labeled with the default `nodeSelector`, which is usually set to `type=compute` (defined in the OpenShift master configuration).
+
+You can skip this entire labeling section if your OpenShift cluster only has a single schedulable node.
+In such case, all MBaaS components, MongoDB replicas, and Cloud Apps will necessarily run on that single node.
+
+[[labelling-for-mbaas-components]]
+===== Labelling for MBaaS components
+
+It is recommended, but not required,
+to deploy the MBaaS components to dedicated nodes, separate from other applications (such as RHMAP Cloud Apps).
+
+Refer to https://access.redhat.com/node/2456121[Infrastructure Sizing Considerations for Installation of RHMAP MBaaS] for the recommended number of MBaaS nodes and Cloud App nodes for your configuration.
+
+For example, if you have 12 nodes, the recommendation is:
+
+* Dedicate three nodes to MBaaS and MongoDB.
+* Dedicate three nodes to Cloud Apps.
+
+To achieve this, apply a label, such as `type=mbaas` to the three dedicated MBaaS nodes.
+
+[source,bash]
+----
+oc label node mbaas-1 type=mbaas
+oc label node mbaas-2 type=mbaas
+oc label node mbaas-3 type=mbaas
+----
+
+Then, when creating the MBaaS project, as described later in xref:manual-provision-installing-the-mbaas[], set this label as the `nodeSelector`.
+
+You can check what `type` labels are applied to all nodes with the following command:
+
+[source,bash]
+----
+oc get nodes -L type
+----
+....
+NAME          STATUS                     AGE       TYPE
+ose-master    Ready,SchedulingDisabled   27d       master
+infra-1       Ready                      27d       infra
+infra-2       Ready                      27d       infra
+app-1         Ready                      27d       compute
+app-2         Ready                      27d       compute
+app-3         Ready                      27d       compute
+mbaas-1       Ready                      27d       mbaas
+mbaas-2       Ready                      27d       mbaas
+mbaas-3       Ready                      27d       mbaas
+....
+
+In this example, the deployment would be as follows:
+
+* Cloud apps get deployed to the three dedicated Cloud App nodes `app-1`, `app-2`, and `app-3`.
+* The MBaaS components get deployed to the three dedicated MBaaS nodes `mbaas-1`, `mbaas-2`, and `mbaas-3` (if the `nodeSelector` is also set on the MBaaS Project).
+
+[[labelling-for-mongodb-replicas]]
+===== Labelling for MongoDB replicas
+
+In the production MBaaS template, the MongoDB replicas are spread over three MBaaS nodes.
+If you have more than three MBaaS nodes, any three of them can host the MongoDB replicas.
+
+To apply the required labels (assuming the three nodes are named `mbaas-1`, `mbaas-2`, and `mbaas-3`):
+
+[source,bash]
+----
+oc label node mbaas-1 mbaas_id=mbaas1
+oc label node mbaas-2 mbaas_id=mbaas2
+oc label node mbaas-3 mbaas_id=mbaas3
+----
+
+You can verify the labels were applied correctly by running this command:
+
+[source,bash]
+----
+oc get nodes -L mbaas_id
+----
+....
+NAME          STATUS                     AGE       MBAAS_ID
+10.10.0.102   Ready                      27d       <none>
+10.10.0.117   Ready                      27d       <none>
+10.10.0.141   Ready                      27d       <none>
+10.10.0.157   Ready                      27d       mbaas3
+10.10.0.19    Ready,SchedulingDisabled   27d       <none>
+10.10.0.28    Ready                      27d       mbaas1
+10.10.0.33    Ready                      27d       <none>
+10.10.0.4     Ready                      27d       <none>
+10.10.0.99    Ready                      27d       mbaas2
+....
+
+See https://docs.openshift.com/enterprise/3.2/admin_guide/manage_nodes.html#updating-labels-on-nodes[Updating Labels on Nodes^] in the OpenShift documentation for more information on how to apply labels to nodes.
+
+[[why-are-mongodb-replicas-spread-over-three-nodes]]
+====== Why are MongoDB replicas spread over multiple nodes?
+
+Each MongoDB replica is scheduled to a different node to support failover.
+
+For example, if an OpenShift node failed, data would be completely inaccessible if all three MongoDB replicas were scheduled on this failing node. Setting a different `nodeSelector` for each MongoDB `DeploymentConfig`, and having a corresponding OpenShift node in the cluster matching this label will ensure the MongoDB pods get scheduled to different nodes.
+
+In the production MBaaS template, there is a different `nodeSelector` for each MongoDB `DeploymentConfig`:
+
+* `mbaas_id=mbaas1` for `mongodb-1`
+* `mbaas_id=mbaas2` for `mongodb-2`
+* `mbaas_id=mbaas3` for `mongodb-3`
+
+.Excerpt of DeploymentConfig of mongodb-1
+....
+{
+  "kind": "DeploymentConfig",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "mongodb-1",
+    "labels": {
+      "name": "mongodb"
+    }
+  },
+  "spec": {
+    ...
+    "template": {
+      ...
+      "spec": {
+        "nodeSelector": {
+          "mbaas_id": "mbaas1"
+        }
+....
+
+[[manual-provision-installing-the-mbaas]]
+=== Installing the MBaaS
+
+[[mbaas-templates]]
+==== MBaaS Templates
+
+The following templates can be used to provision an MBaaS in Openshift 3 using the 'oc' client:
+
+* `fh-mbass-template-1node.json` (Automatic Installation Template)
++
+
+IMPORTANT: This template is not recommended for production use.
+
+Use this template to create an MBaaS with the same characteristics as the MBaaS template created by selecting the Automatic Installation from {ProductShortName} Studio:
++
+** a single MongoDB replica with **NO** persistent storage requirements
+** a single replica for each MBaaS component
+
+
+* `fh-mbaas-template-1node-persistent.json`
++
+
+IMPORTANT: This template is not recommended for production use.
+
+Use this template to create an MBaaS with characteristics that are similar to the Automatic Installation template, but also include persistent storage and a Nagios component for monitoring:
++
+** a single MongoDB replica with a **25GiB** PersistentVolume requirement
+** a single replica defined for each MBaaS component
+** a Nagios service with a **1GiB** PersistentVolume requirement
+
+
+* `fh-mbaas-template-3node.json` (Manual Installation Template)
++
+Use this template to create an MBaaS with the same characteristics as the MBaaS template created by selecting the Manual Installation from {ProductShortName} Studio, it is the template recommended for production use:
++
+** **three** MongoDB replicas with a **50GiB** PersistentVolume requirement each
+** a Nagios service with a **1GiB** PersistentVolume requirement
+** **three** replicas defined for each MBaaS component (with the exception of fh-statsd)
+** nodeSelectors of `mbaas_id=mbaas1`, `mbaas_id=mbaas2` & `mbaas_id=mbaas3` for each of the MongoDB replicas
+
+[[mbaas-installation]]
+==== Installation
+
+In this step, you will provision the MBaaS to the OpenShift cluster from the command line, based on the MBaaS OpenShift template.
+
+First, download the latest version of the MBaaS OpenShift template.
+
+. In the Studio, navigate to the _Admin > MBaaS Targets_ section. Click __New MBaaS Target__.
+. Choose _OpenShift 3_ as Type.
+. At the bottom of the page, click _Download Template_ and save the template file `fh-mbaas-template-3node.json`. You may now close the _New MBaaS Target_ screen.
+
+Using the downloaded template, provision the MBaaS in the OpenShift cluster from the command line. For general information about the OpenShift CLI, see https://docs.openshift.com/enterprise/3.2/cli_reference/basic_cli_operations.html[CLI Operations^] in the OpenShift Enterprise documentation.
+
+. Create a new project.
++
+Log in to OpenShift as an administrator. You will be prompted for credentials.
++
+[source,bash]
+----
+oc login <public URL of the OpenShift master>
+----
++
+Create the project:
++
+[WARNING]
+--
+The name of the OpenShift project chosen here must have the suffix `-mbaas`. The part of the name before `-mbaas` is used later in this guide as the ID of the MBaaS target associated with this OpenShift project. For example, if the ID of the MBaaS target is `live`, the OpenShift project name set here must be `live-mbaas`.
+--
++
+[source,bash]
+----
+oc new-project live-mbaas
+----
+
+. Set the node selector of the project to target MBaaS nodes.
++
+This ensures that all MBaaS components are deployed to the dedicated MBaaS nodes.
++
+[NOTE]
+--
+If you have chosen *not* to have dedicated MBaaS nodes in xref:labelling-for-mbaas-components[], skip this step.
+--
++
+Set the `openshift.io/node-selector` annotation to `type=mbaas` in the project's namespace:
++
+[NOTE]
+--
+You may need to add this annotation if it is missing.
+--
++
+[source,bash]
+----
+oc edit ns live-mbaas
+----
++
+....
+apiVersion: v1
+kind: Namespace
+metadata:
+ annotations:
+   openshift.io/node-selector: type=mbaas
+...
+....
+
+. Provide SMTP server details for email alerts.
++
+The Nagios monitoring software, which is a part of the MBaaS template, sends alerts over email through a user-provided SMTP server.
++
+Create a `ServiceAccount` for the monitoring container, and give it the `admin` role.
++
+[source,bash]
+----
+oc create serviceaccount nagios
+oc policy add-role-to-user admin -z nagios
+----
++
+Set the following environment variables with values appropriate for your environment:
++
+[source,bash]
+----
+export SMTP_SERVER="localhost"
+export SMTP_USERNAME="username"
+export SMTP_PASSWORD="password"
+export SMTP_FROM_ADDRESS="nagios@example.com"
+export RHMAP_ADMIN_EMAIL="root@localhost"
+----
++
+If you do not need email alerts or want to set it up later, use the values provided in the sample above.
+
+// 4.3 + proxy
+
+. Configure the proxy settings if a proxy is required for outbound Internet access.
++
+{ProductShortName} can be configured to use a proxy for outbound internet access. Skip this step if you do not use a proxy.
++
+Run the following commands using your proxy IP address and port:
++
+[source, bash]
+----
+export PROXY_URL="http://<proxy-host>:<proxy-port>"
+----
++
+If the proxy requires authentication, run the following commands using your proxy username and password:
++
+[source, bash]
+----
+export PROXY_URL="http://<username>:<password>@<proxy-host>:<proxy-port>"
+----
+
+. Create all the MBaaS resources from the template.
++
+[source,bash]
+----
+oc new-app -f fh-mbaas-template-3node.json \
+-p SMTP_SERVER="${SMTP_SERVER}" \
+-p SMTP_USERNAME="${SMTP_USERNAME}" \
+-p SMTP_PASSWORD="${SMTP_PASSWORD}" \
+-p SMTP_FROM_ADDRESS="${SMTP_FROM_ADDRESS}" \
+-p RHMAP_ADMIN_EMAIL="${RHMAP_ADMIN_EMAIL}" \
+-p PROXY_URL="${PROXY_URL}"
+----
++
+After all the resources are created, you should see output similar to the following:
++
+....
+--> Deploying template fh-mbaas for "fh-mbaas"
+     With parameters:
+      MONGODB_FHMBAAS_USER=u-mbaas
+      ...
+
+--> Creating resources ...
+--> Creating resources ...
+    configmap "fh-mbaas-info" created
+    service "fh-mbaas-service" created
+    service "fh-messaging-service" created
+    service "fh-metrics-service" created
+    service "fh-statsd-service" created
+    service "mongodb-1" created
+    service "mongodb-2" created
+    service "mongodb-3" created
+    service "nagios" created
+    serviceaccount "nagios" created
+    rolebinding "nagiosadmin" created
+    deploymentconfig "fh-mbaas" created
+    deploymentconfig "fh-messaging" created
+    deploymentconfig "fh-metrics" created
+    deploymentconfig "fh-statsd" created
+    deploymentconfig "nagios" created
+    persistentvolumeclaim "mongodb-claim-1" created
+    persistentvolumeclaim "mongodb-claim-2" created
+    persistentvolumeclaim "mongodb-claim-3" created
+    deploymentconfig "mongodb-1" created
+    deploymentconfig "mongodb-2" created
+    deploymentconfig "mongodb-3" created
+    pod "mongodb-initiator" created
+    route "mbaas" created
+    route "nagios" created
+
+--> Success
+    Run 'oc status' to view your app.
+....
++
+It may take a minute for all the resources to get created and up to 10 minutes for all the components to get to a `Running` status.
+
+[[verifying-the-installation]]
+=== Verifying The Installation
+
+. Ping the health endpoint.
++
+If all services are created, all pods are running, and the route is exposed, the MBaaS health endpoint can be queried as follows:
++
+[source,bash]
+----
+curl `oc get route mbaas --template "{{.spec.host}}"`/sys/info/health
+----
++
+The endpoint responds with health information about the various MBaaS components and their dependencies.
+If there are no errors reported, the MBaaS is ready to be configured for use in the Studio.
+Successful output will resemble the following:
++
+[source,json]
+----
+{
+  "status": "ok",
+  "summary": "No issues to report. All tests passed without error",
+  "details": [
+    {
+      "description": "Check Mongodb connection",
+      "test_status": "ok",
+      "result": {
+        "id": "mongodb",
+        "status": "OK",
+        "error": null
+      },
+      "runtime": 33
+    },
+    {
+      "description": "Check fh-messaging running",
+      "test_status": "ok",
+      "result": {
+        "id": "fh-messaging",
+        "status": "OK",
+        "error": null
+      },
+      "runtime": 64
+    },
+    {
+      "description": "Check fh-metrics running",
+      "test_status": "ok",
+      "result": {
+        "id": "fh-metrics",
+        "status": "OK",
+        "error": null
+      },
+      "runtime": 201
+    },
+    {
+      "description": "Check fh-statsd running",
+      "test_status": "ok",
+      "result": {
+        "id": "fh-statsd",
+        "status": "OK",
+        "error": null
+      },
+      "runtime": 7020
+    }
+  ]
+}
+----
+
+. Verify that all Nagios checks are passing.
++
+Log in to the Nagios dashboard of the MBaaS by following the steps in the  link:{OperationsGuide}#accessing-nagios-dashboard[Accessing the Nagios Dashboard] section in the Operations Guide.
++
+After logging in to the Nagios Dashboard, all checks under the left-hand-side *Services* menu should be indicated as *OK*.
+// TODO: Add  a link to the Troubleshooting and Debugging Guide once it is created.
+If any of the checks are not in an *OK* state, consult the Troubleshooting and Debugging guide, which explains the likely causes and fixes for common problems.
+
+After verifying that the MBaaS is installed correctly, you must create an MBaaS target for the new MBaaS in the Studio.
+
+[[creating-an-mbaas-target]]
+== Creating an MBaaS Target
+
+. In the Studio, navigate to the _Admin > MBaaS Targets_ section. Click __New MBaaS Target__.
+. The user is presented with two options for the Deployment Type, Manual (Recommended) or Automatic.
+
+[[automatic-mbaas-target-creation]]
+=== Automatic MBaaS Target Creation
+
+. As Deployment Type, Click __Automatic__.
+. Enter the following information
+* *MBaaS Id* - a unique ID for the MBaaS, for example, `live`. The ID must be equal to the OpenShift project name chosen in the _Installing the MBaaS_ section, without the `-mbaas` suffix.
+* *OpenShift Master URL* - the URL of the OpenShift master, for example, `https://master.openshift.example.com:8443`.
+* *OpenShift Router DNS* - a wildcard DNS entry of the OpenShift router, for example, `*.cloudapps.example.com`.
+* *OpenShift API Token* -  an API Token is a short lived authentication token allowing RHMAP to interact with the OpenShift installation. A new API Token can be obtained from the OpenShift Master: https://master_host/oauth/token/request.
+
+. Click _Save MBaaS_ and you will be directed to the MBaaS Status screen.
+It can take several minutes before the status is reported back.
+
+[[manual-mbaas-target-creation]]
+=== Manual MBaaS Target Creation
+
+. As Deployment Type, Click __Manual (Recommended)__.
+. Enter the following information
+* *MBaaS Id* - a unique ID for the MBaaS, for example, `live`. The ID must be equal to the OpenShift project name chosen in the _Installing the MBaaS_ section, without the `-mbaas` suffix.
+* *OpenShift Master URL* - the URL of the OpenShift master, for example, `https://master.openshift.example.com:8443`.
+* *OpenShift Router DNS* - a wildcard DNS entry of the OpenShift router, for example, `*.cloudapps.example.com`.
+* *MBaaS Service Key*
++
+Equivalent to the value of the `FHMBAAS_KEY` environment variable, which is automatically generated during installation. To find out this value, run the following command:
++
+[source,bash]
+----
+oc env dc/fh-mbaas --list | grep FHMBAAS_KEY
+----
++
+Alternatively, you can find the value in the OpenShift Console, in the _Details_ tab of the `fh-mbaas` deployment, in the _Env Vars_ section.
+* *MBaaS URL*
++
+A URL of the route exposed for the `fh-mbaas-service`, including the _https_ protocol prefix.
+This can be retrieved from the OpenShift web console, or by running the following command:
++
+[source,bash]
+----
+echo "https://"$(oc get route/mbaas -o template --template {{.spec.host}})
+----
+
+* *MBaaS Project URL* - (Optional) URL where the OpenShift MBaaS project is available e.g. https://mbaas-mymbaas.openshift.example.com:8443/console/project/my-mbaas/overview.
+* *Nagios URL* - (Optional) Exposed route where Nagios is running in OpenShift 3 e.g. https://nagios-my-mbaas.openshift.example.com.
+
+. Click _Save MBaaS_ and you will be directed to the MBaaS Status screen.
+For a manual installation, the status should be reported back in less than a minute.
+
+Once the process of creating the MBaaS has successfully completed, you can see the new MBaaS in the list of MBaaS targets.
+
+image:ose3-mbaas-target.png[OpenShift 3 MBaaS target]
+
+In your OpenShift account, you can see the MBaaS represented by a project.
+
+image:ose3-mbaas-target-ose.png[OpenShift 3 MBaaS target]
+
+== After Installation
+
+* link:{ProductFeatures}#creating-an-environment[Create an Environment] - you must create at least one environment for the MBaaS to be usable by Cloud Apps and Cloud Services
+* xref:adjusting-system-resource-usage-of-the-mbaas-and-cloud-apps[Adjusting System Resource Usage of the MBaaS and Cloud Apps] - we *strongly recommend* that you adjust the system resource usage of MBaaS components as appropriate for your production environment
+* Optional: link:{OperationsGuide}#enabling-centralized-logging[Enabling Centralized Logging] - deploy a centralized logging solution based on ElasticSearch, Fluentd, and Kibana to debug issues with the MBaaS
+

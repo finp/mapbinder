@@ -1,0 +1,36 @@
+include::shared/attributes.adoc[]
+
+= Product Features
+
+[[projects-apps-and-services]]
+== Projects, Apps, and Services
+
+include::projects.adoc[leveloffset=+2]
+include::apps.adoc[leveloffset=+2]
+include::cloud_apps.adoc[leveloffset=+2]
+include::services.adoc[leveloffset=+2]
+
+[[product-features-mobile-backend]]
+== Mobile Backend
+
+include::mbaas.adoc[leveloffset=+2]
+include::resources.adoc[leveloffset=+2]
+include::push_notifications.adoc[leveloffset=+2]
+
+[[product-features-drag-and-drop-apps]]
+== Drag and Drop Apps
+
+include::forms-builder.adoc[leveloffset=+2]
+include::forms-projects.adoc[leveloffset=+2]
+include::forms-rules.adoc[leveloffset=+2]
+include::forms-data_sources.adoc[leveloffset=+2]
+include::forms-themes.adoc[leveloffset=+2]
+include::forms-submissions.adoc[leveloffset=+2]
+
+[[product-features-administration-and-management]]
+== Administration and Management
+
+include::account.adoc[leveloffset=+2]
+include::admin.adoc[leveloffset=+2]
+include::analytics.adoc[leveloffset=+2]
+include::teams.adoc[leveloffset=+2]

@@ -1,0 +1,206 @@
+include::shared/attributes.adoc[]
+
+[[centralized-logging-for-components]]
+= Centralized Logging for Core and MBaaS Components
+
+Logging output from {ProductShortName} Core and MBaaS components can be aggregated and accessed through a web console when using a RHMAP Core or MBaaS backed by OpenShift Enterprise 3 (OSEv3).
+
+[[enabling-centralized-logging]]
+== Enabling Centralized Logging
+
+Aggregated logging is enabled by deploying an _EFK logging stack_ to your OSEv3 instance, which consists of the following components:
+
+* https://www.elastic.co/products/elasticsearch[Elasticsearch^] indexes log output collected by Fluentd and makes it searchable.
+* http://www.fluentd.org/[Fluentd^] collects standard output of all containers.
+* https://www.elastic.co/products/kibana[Kibana^] is a web console for querying and visualizing data from Elasticsearch.
+
+To enable this functionality, follow the official OpenShift guide https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/installation-and-configuration/chapter-22-aggregating-container-logs[Aggregating Container Logs^].
+
+[[accessing-logs-through-kibana-web-console]]
+== Accessing Logs Through Kibana Web Console
+
+The Kibana web console is where logs gathered by Fluentd and indexed by Elasticsearch can be viewed and queried. You can access the Kibana web console via the OpenShift web console, or directly by its URL configured through the `KIBANA_HOSTNAME` in the deployment procedure.
+
+[[viewing-logs-of-a-single-pod]]
+=== Viewing Logs of a Single Pod
+
+If you have configured `loggingPublicURL` in step 8 of the deployment procedure, the OpenShift web console allows you to view the log archive of a particular pod.
+
+. In the OpenShift web console, select a project you are interested in. +
+. Click on the _Pods_ circle of the specific service.
+. Choose one of the pods to inspect.
+. Click on the _Logs_ tab.
+. Click on the _View Archive_ button at the top right corner to access the logs of the chosen pod in the Kibana web console.
+
+NOTE: By default, Kibana's time filter shows the last 15 minutes of data. If you don't see any values, adjust the _Time filter_ setting to a broader time interval.
+
+[[accessing-kibana-directly]]
+=== Accessing Kibana Directly
+
+You can access the Kibana web console directly at `https://KIBANA_HOSTNAME`, where `KIBANA_HOSTNAME` is the host name you set in step 4 of the deployment procedure.
+
+[[configuring-an-index-pattern]]
+=== Configuring an Index Pattern
+
+When accessing the Kibana web console directly for the first time, you are presented with the option to configure an index pattern. You can also access this configuration screen in the _Settings_ tab.
+
+For MBaaS deployments, there is an index pattern in the format `<MBaaS ID>-mbaas.*`, matching the ID of the deployed MBaaS target.
+
+For RHMAP Core deployment, there is an index pattern `core.*`.
+
+To make queries more efficient, you can restrict the index pattern by date and time.
+
+. Select the _Use event times to create index names_
+. Enter the following pattern in the _Index name or pattern_ input text field. For example:
++
+[source,bash]
+----
+[onprem-mbaas.]YYYY.MM.DD
+----
+
+. You will see output similar to the following below the input field
++
+[source,bash]
+----
+Pattern matches 100% of existing indices and aliases
+onprem-mbaas.2016.02.04
+onprem-mbaas.2016.02.05
+----
+
+. Click _Create_ to create the index based on this pattern.
+. You can now select this newly created index in the _Discover_ tab when doing searches, as well as in other parts, such as the _Visualizations_ tab.
+
+[[request-identifiers]]
+== Tracking Individual Requests in Logs
+
+Every request to the RHMAP platform has a unique internal identifier assigned, which helps in identifying the sequence of events in Core and MBaaS components triggered by the request.
+
+// TODO: need to expand the example. Currently it doesn't say much. Which components are involved?
+For example, if a user is deploying a form to an environment, the ID in the logging statements resulting from the request will be identical.
+
+NOTE: Only requests from `fhc` and Studio get an identifier assigned, *not* requests from mobile applications to an MBaaS.
+
+Search for log statements related to a specific request in one of the following ways:
+
+* *Using Kibana*
++
+--
+** Filter by the `reqId` field. For example `reqId=559d8f74-32d2-4c6e-b1a2-b46d2993e874`.
+** Use the `.all` index to search in logs from components of both Core and MBaaS.
+--
++
+image:kibana-reqsearch.png[Failed Request Kibana Search]
+
+* *Using `fhc`*
++
+. Enable `fhc` to access the logging data, as described in xref:enabling-fhc-access-centralized-logs[].
+
+. Use the `admin logs syslogs` command of `fhc`:
++
+[source,bash]
+----
+fhc admin logs syslogs --requestId 559d8f74-32d2-4c6e-b1a2-b46d2993e874 --projects="core,mbaas"
+----
++
+Set `--projects` to a comma-separated list of OpenShift project names to search in.
+
+
+[[identifying-issues-in-core]]
+== Identifying Issues in a RHMAP Core
+
+If you encounter unexpected errors in RHMAP Core UI, you can use Kibana's _Discover_ tab to find the root of the problem. Every request that the RHMAP Core UI sends has an unique identifier that can be used to gather the relevant logs. The following  steps describe the procedure:
+
+. Identify the request ID associated to the failed request you want to investigate
++
+Errors in the platform usually manifests in UI as a notification pop-up, containing information about the URL endpoint the failed request was targeting, the error message and the Request ID. Take the note of the Request ID.
++
+image:failed-request-box.png[Failed Request Notification Pop-Up]
+
+. Query for the relevant logs in Kibana
++
+Log in to your Kibana instance and go to the _Discover_ tab. Enter a query in form `reqId=` and you should see all of the logs relating to the failing request.
++
+Useful fields to display include:
++
+* *msg*
+* *message*
+* *kubernetes_container_name*
+* *level*
+
+[[identifying-issues-in-mbaas]]
+== Identifying Issues in an MBaaS
+
+If you suspect that an error of an MBaaS component may be the cause of an issue, you can use Kibana's _Discover_ tab to find the root of the problem. The following steps describe the general procedure you can follow to identify issues.
+
+. Select the index for the MBaaS target you are interested in
++
+Use the dropdown just below the input bar in the _Discover_ view to list all available indices. An https://www.elastic.co/guide/en/elasticsearch/guide/current/_indexing_employee_documents.html#_indexing_employee_documents[index^] is similar to a database in relational database systems. Select which index your searches will be performed against.
+
+. Select a time interval for your search
++
+Click the _Time Filter_ (clock icon) and adjust the time interval. Initially, try a broader search.
+
+. Perform a simple search
++
+To search for all error events, perform a simple search for `error` in the _Discovery_ field. This will return the number of hits within the chosen time interval.
+
+. Select the `msg` or `message` field to be displayed
++
+On the left hand side of the _Discover_ view is a list of fields. From this list you can select fields to display in the document data section. Selecting a field replaces the `_source` field in the document data view. This enables you to see any error messages and might help you refine your original search if needed. You can also select more fields to help you locate the issue.
+
+
+[[viewing-all-debug-logs-for-an-mbaas-component]]
+== Viewing All Debug Logs for a Component
+
+If searching for error messages doesn't help, you can try looking into the debug logs of individual components.
+
+. Select the index for the target that you are interested in
+. Start a new search
++
+Click on the _New Search_ button to the left of the search input bar, which looks like a document with a plus sign.
+
+. Search a component for all debug messages
++
+For example, to search for all debug messages of the `fh-messaging` component, enter the following query:
++
+[source,bash]
+----
+type: bunyan && level: 20 && kubernetes_container_name: "fh-messaging"
+----
++
+If you know some part of the error message, you can specify that as part of the search:
++
+[source,bash]
+----
+type: bunyan && level: 20 && kubernetes_container_name: "fh-messaging" && "Finished processing"
+----
++
+You can narrow down your search further by time, as described in step 5 above.
++
+As a reference, the following are the Bunyan log levels:
++
+[source,bash]
+----
+TRACE = 10;
+DEBUG = 20;
+INFO = 30;
+WARN = 40;
+ERROR = 50;
+FATAL = 60;
+----
+
+[[analyzing-search-results]]
+== Analyzing the search results
+
+. Narrow down the time interval
++
+The histogram shows search hits returned in the chosen time interval. To narrow down the search in time you have the following options:
++
+* Click on a bar in the histogram to narrow down the search to that bar's time interval.
+* Select a time window in the date histogram by clicking and dragging between the start/end time you are interested in.
+
+. Inspect the document data
++
+Once you narrow down the search, you can inspect the document data items. Apart from the `msg` and `message` fields, you might be interested in `kubernetes_pod_name` to see the pod a message originates from.
+
+include::enabling-fhc-access-centralized-logs.adoc[leveloffset=+1]

@@ -1,0 +1,58 @@
+include::shared/attributes.adoc[]
+
+[[using-multiple-ssh-keys-for-different-domainsprojects]]
+= Using multiple SSH keys for different domains/projects
+
+If you need to access multiple domains in the {ProductName} ({ProductShortName}) as different users you will need to use seperate SSH keys when
+accessing the Git repositories, since each SSH key can only be associated with a single user. You will need to tell Git/SSH
+which key you want to apply to each host. This is normally done via an SSH config file.
+
+[[details]]
+== Details
+
+SSH will normally attempt to use all the identity files available to it, and if several of your ssh keys are valid in the
+cluster, it may use one that's valid for the cluster but which doesn't have access to the project that you are trying to clone.
+
+You can update your local SSH config file, normally `~/.ssh/config`, to list the identities to use for a particular host, but
+you should also add an `IdentitiesOnly yes` clause, to tell SSH to only use the specified identity file for a particular host,
+rather than all the identity files.
+
+So if you want to access App repositories as different users, create SSH keys for each of the two users. Upload each SSH key to its
+corresponding user's account.
+
+In the example below, the SSH key file `/Users/jbloggs/.ssh/key_for_domain1_id_rsa` has been uploaded to my user in `domain1.redhatmobile.com`,
+and `/Users/jbloggs/.ssh/key_for_domain2_id_rsa` has been uploaded to the user in `domain2.redhatmobile.com`
+
+To allow access to the App repositories:
+
+....
+git@domain1.redhatmobile.com:domain1/jbAdvTest-mmCord1.git
+git@domain2.redhatmobile.com:domain2/jbAdvTest-mmCord2.git
+....
+
+Your ssh config file would look something like the following:
+
+....
+Host domain1.redhatmobile.com
+HostName domain1.redhatmobile.com
+IdentitiesOnly yes
+IdentityFile /Users/jbloggs/.ssh/key_for_domain1_id_rsa
+Host domain2.redhatmobile.com
+HostName domain2.redhatmobile.com
+IdentitiesOnly yes
+IdentityFile /Users/jbloggs/.ssh/key_for_domain2_id_rsa
+....
+
+You can then clone the repos using the git commands:
+
+[source,bash]
+----
+git clone git@domain1.redhatmobile.com:domain1/jbAdvTest-mmCord1.git
+git clone git@domain2.redhatmobile.com:domain2/jbAdvTest-mmCord2.git
+----
+
+Because of the ssh config file, the appropriate SSH key will be used for each domain, for further information on the configuration
+of ssh, you should check the documentation for your local installation of SSH, depending on your Operating System, it may
+be available from the command line `man ssh_config`.
+
+Note that the above configurations and domain names are examples only and do not refer to actual domains.

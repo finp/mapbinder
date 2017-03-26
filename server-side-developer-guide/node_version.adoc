@@ -1,0 +1,50 @@
+include::shared/attributes.adoc[]
+
+[[setting-the-node-js-version]]
+= Setting the Node.js version
+
+[[using-fhc]]
+== Using fhc
+
+Firstly ensure you have the latest version of fhc.
+
+[source,bash]
+----
+npm install -g fh-fhc
+----
+
+You can then use the fhc runtimes command to see which runtimes are available to you in an Environment.
+
+[source,bash]
+----
+fhc runtimes --env=dev
+----
+
+This command will produce output something like
+
+----
+node08   : 0.8.26
+node010  *: 0.10.30
+----
+
+On the left is the name of the runtime and the right is the particular version. The runtime with the asterisk next to it is the default runtime used.
+
+You can set the runtime for your app during a stage.
+
+[source,bash]
+----
+fhc app stage --app=<APP_GUID> --runtime=node08
+----
+
+[source,bash]
+----
+fhc app stage --app=<APP_GUID> --runtime=node010  --env=test
+----
+
+This will set your apps runtime to v0.8.24 of node. any stage you do after that will keep the version at node08.
+To change it to a different runtime add the runtime argument to the stage command again. The second command will set the runtime to node v0.10 for the Test version of your app.
+
+[[using-the-studio]]
+== Using the studio
+
+In the Studio from the deploy screen you can see the current runtime the app is set to. You can also set a new runtime here and then deploy your app.

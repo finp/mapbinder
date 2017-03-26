@@ -1,0 +1,219 @@
+include::shared/attributes.adoc[]
+
+[[migrating-from-roles-to-teams]]
+= Migrating From Roles to Teams
+
+*Teams* is a powerful new system for controlling access to functional areas of the Platform.
+
+This guide presents a comparison of `Roles` based restrictions and the new `Permissions` based restrictions. Each `Role` is compared to the `Permissions` needed to create an equivalent restriction.
+
+[[adding-permissions]]
+== Adding Permissions
+
+In the Roles based permissions system, Roles are assigned to Users in three levels:
+
+* *This Domain*: The Role is active active for the domain represented by the current host name only.
+* *All Domains*: The Role is active for all domains owned by the Customer.
+* *All Customers*: The Role is active for all domains owned by all customers who are managed by the Current Reseller.
+
+// FIX: the sentence below was found incomplete, ending with a comma
+// In the Teams based permissions system,
+
+[[analytics-analytics]]
+== Analytics (analytics)
+
+* Can access the Analytics section of the Platform
+* Can monitor project usage.
+
+The following Permissions assigned to a Team will allow equivalent access to Analytics:
+
+* Domain
+** Analytics (View)
+** Project (View)
+** Connection (No Access)
+** Cloud Resources (No Access)
+
+[[forms-editor-formseditor]]
+== Forms Editor (formseditor)
+
+* Can create forms and themes.
+* Can create Form Projects.
+* Can edit forms, themes, and Projects associated with their group(s).
+* Can associate forms and themes with projects in their group(s).
+
+The following Permissions assigned to a Team will allow equivalent access to Forms:
+
+* Domain
+** Project (View & Edit)
+** Drag & Drop App (View & Edit)
+* Form
+** Submission (No Access)
+
+NOTE: The concept of Groups has been removed from Drag & Drop Apps. It has been replaced by the `Form` Business Object.
+
+[[forms-administrator-formsadmin]]
+== Forms Administrator (formsadmin)
+
+* Can create forms and themes.
+* Can create Form Projects.
+* Can create groups.
+* Can assign users to groups.
+* Can view, access and manage all forms & themes created on a specific domain.
+* Can view submissions from all projects on the domain.
+* Can edit submissions from any project on the domain.
+
+The following Permissions assigned to a Team will allow equivalent access to Forms
+
+* Domain
+** Project (View & Edit)
+** Drag & Drop App (View & Edit)
+
+NOTE: The concept of Groups has been removed from Drag & Drop Apps. It has been replaced by the `Form` Business Object.
+
+[[submission-viewer-submissionsviewer]]
+== Submission Viewer (submissionsviewer)
+
+* Has access to view submissions from any project in their group(s).
+
+The following Permissions assigned to a Team will allow equivalent access to Forms
+
+* Project (View)
+** Cloud Resources (No Access)
+** Connection (No Access)
+** Analytics (No Access)
+** Client App (No Access)
+** Cloud App (No Access)
+* Drag & Drop Apps (View)
+** Theme (No Access)
+
+[[submission-editor-submissionseditor]]
+== Submission Editor (submissionseditor)
+
+* Has access to view submissions from projects in their group(s)
+* Has access to edit submissions from projects in their group(s)
+
+The following Permissions assigned to a Team will allow equivalent access to Forms
+
+* Project (View)
+** Cloud Resources (No Access)
+** Connection (No Access)
+** Analytics (No Access)
+** Client App (No Access)
+** Cloud App (No Access)
+* Drag & Drop Apps (View & Edit)
+** Form (View)
+* Submission (View & Edit)
+** Theme (No Access)
+
+[[developer-administrator-devadmin]]
+== Developer Administrator (devadmin)
+
+* Can create and manage any type of Project.
+* Can build App binaries for all available platforms.
+* Can upload development resources such as private keys and certificates.
+* Can create, edit, and maintain deployment targets.
+* Can view and access all Projects & Apps on a specific domain.
+* Can view and edit all deployment targets on a specific domain.
+* Services (View)
+** Source Code (No Access)
+** Analytics (No Access)
+** Environment Variables (No Access)
+** Data Browser (No Access)
+** Cloud Deployment (No Access)
+** Stats (No Access)
+** Notifications (No Access)
+** Log (No Access)
+** Endpoints (No Access)
+* Project (View & Edit)
+* Drag & Drop Apps (View)
+** Form (View)
+* Submission (No Access)
+
+[[developer-dev]]
+== Developer (dev)
+
+* Can create and manage any type of Project.
+* Can build App binaries for all available platforms.
+* Can upload development resources such as private keys and certificates.
+* Can create, edit, and maintain deployment targets.
+* Can add public services to a project.
+
+The following Permissions assigned to a Team will allow equivalent access:
+
+* Services (View)
+** Source Code (No Access)
+** Analytics (No Access)
+** Environment Variables (No Access)
+** Data Browser (No Access)
+** Cloud Deployment (No Access)
+** Stats (No Access)
+** Notifications (No Access)
+** Log (No Access)
+** Endpoints (No Access)
+* Project (View & Edit)
+* Drag & Drop Apps (View)
+** Form (View)
+* Submission (No Access)
+
+[[service-administrator-serviceadmin]]
+== Service Administrator (serviceadmin)
+
+* Can provision mBaaS Services.
+* Can manage mBaaS Services.
+
+The following Permissions assigned to a Team will allow equivalent access:
+
+* Domain
+** Services (View & Edit)
+
+[[domain-administrator-portaladmin]]
+== Domain Administrator (portaladmin)
+
+* Can create and edit Auth Policies.
+* Can update the App Store for their domain.
+* Can create and manage App Store Apps.
+* Can create and manage App Store Groups.
+* Can manage App Store Devices.
+* Can view App Store Logs.
+* Can access the 'Mobile App Management' section on the Admin page.
+* Can add and remove users.
+* Can assign roles to users.
+
+The following Permissions assigned to a Team will allow equivalent access:
+
+* Domain
+** Authorization Policy (View & Edit)
+** App Store (View & Edit)
+** Admininstrator (View & Edit)
+
+[[customer-administrator-customeradmin]]
+== Customer Administrator (customeradmin)
+
+* Can manage users in any domain belonging to this customer.
+
+The following Permissions assigned to a Team will allow equivalent access:
+
+* Customer
+** Administrator (View & Edit)
+
+[[reseller-administrator-reselleradmin]]
+== Reseller Administrator (reselleradmin)
+
+* Can manage users in any domain belonging to any of its customers.
+* Can assign the Customer Admin role to users.
+
+The following Permissions assigned to a Team will allow equivalent access:
+
+* Reseller
+** Administrator (View & Edit)
+
+[[administrator-admin]]
+== Administrator (admin)
+
+* Can perform any action in the Platform.
+* Can assign Reseller Admin and Customer Admin roles to users.
+
+The following Permissions assigned to a Team will allow equivalent access:
+
+* Reseller
+** Administrator (View & Edit)

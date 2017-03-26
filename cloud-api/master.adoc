@@ -1,0 +1,14 @@
+include::shared/attributes.adoc[]
+
+= Cloud API
+
+include::cache.adoc[leveloffset=+1]
+include::db.adoc[leveloffset=+1]
+include::forms.adoc[leveloffset=+1]
+include::hash.adoc[leveloffset=+1]
+include::host.adoc[leveloffset=+1]
+include::push.adoc[leveloffset=+1]
+include::sec.adoc[leveloffset=+1]
+include::service.adoc[leveloffset=+1]
+include::stats.adoc[leveloffset=+1]
+include::sync.adoc[leveloffset=+1]

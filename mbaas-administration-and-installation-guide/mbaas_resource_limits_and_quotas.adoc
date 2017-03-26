@@ -1,0 +1,159 @@
+include::shared/attributes.adoc[]
+
+[[adjusting-system-resource-usage-of-the-mbaas-and-cloud-apps]]
+= Adjusting System Resource Usage of the MBaaS and Cloud Apps
+
+[[resource-limits-and-quotas-overview]]
+== Overview
+
+In the {ProductShortName} 4.x MBaaS based on OpenShift 3, each Cloud App and and each MBaaS component runs in its own container.
+This architecture allows for granular control of CPU and memory consumption.
+A fine level of control of system resources helps to ensure efficient use of nodes, and to guarantee uninterrupted operation of critical services.
+
+An application can be prepared for various situations, such as high peak load or sustained load, by making decisions about the resource limits of individual components.
+For example, you could decide that MongoDB must keep working at all times, and assign it high, guaranteed amount of resources.
+At the same time, if the availability of a front-end Node.js server is less critical, the server can be assigned less initial resources, with the possibility to use more resources when available.
+
+[[resource-limits-and-quotas-prerequisites]]
+== Prerequisites
+
+The system resources of MBaaS components and Cloud Apps in the MBaaS can be regulated using the mechanisms available in OpenShift – resource __requests__, __limits__, and __quota__.
+Before proceeding with the instructions in this guide, we advise you to read the https://docs.openshift.com/enterprise/3.2/dev_guide/compute_resources.html[Quotas and Limit Ranges^] section in the OpenShift documentation.
+
+[[adjusting-resource-usage-of-the-mbaas]]
+== Adjusting Resource Usage of the MBaaS
+
+The {ProductShortName} MBaaS is composed of several components, each represented by a single container running in its own pod.
+Each container has default resource requests and limits assigned in the MBaaS OpenShift template.
+See the section xref:overview-of-resource-usage-of-mbaas-components[Overview of Resource Usage of MBaaS Components] for a complete reference of the default values.
+
+Depending on the deployment model of the MBaaS, you may have to adjust the resource limits and requests to fit your environment.
+If the MBaaS components are deployed on the same nodes as the Cloud Apps, there is no adjustment required.
+
+However, when the MBaaS components are deployed on nodes dedicated to running the MBaaS only, it is strongly recommended to adjust the resource limits to take full advantage of the available resources on the dedicated nodes.
+
+[[calculating-the-appropriate-resource-requests-and-limits]]
+=== Calculating the Appropriate Resource Requests and Limits
+
+NOTE: This section refers to CPU resources in two different terms – the commonly used term _vCPU_ (virtual CPU), and the term _millicores_ used in OpenShift documentation. The unit of _1 vCPU_ is equal to _1000 m_ (__millicores__), which is equivalent to 100% of the time of one CPU core.
+
+The resource limits must be set accordingly for your environment and depend on the characteristics of load on your Cloud Apps.
+However, the following rules can be used as a starting point for adjustments of resource limits:
+
+* Allow 2 GiB of RAM and 1 vCPU for the underlying operating system.
+* Split the remainder of resources in equal parts amongst the MBaaS Components.
+
+[[example]]
+==== Example
+
+Given a virtual machine with 16 GiB of RAM and 4 vCPUs, we allow 2 GiB of RAM and 1 vCPU for the operating system.
+This leaves 14GB RAM and 3 vCPUs (equal to 3000 m) to distribute amongst the 5 MBaaS components.
+
+....
+14 GiB / 5 = 2.8 GiB of RAM per component
+....
+
+....
+3000 m / 5 = 600 m per component
+....
+
+In this example, the resource *limit* for each MBaaS component would be 2.8 GiB of RAM and 600 millicores of CPU.
+Depending on the desired level of quality of service of each component, set the resource *request* values as described in the section https://docs.openshift.com/enterprise/3.2/dev_guide/compute_resources.html#quality-of-service-tiers[Quality of service tiers^] in the OpenShift documentation.
+
+[[overview-of-resource-usage-of-mbaas-components]]
+=== Overview of Resource Usage of MBaaS Components
+
+The following table lists the components of the MBaaS, their idle resource usage, default resource request, and default resource limit.
+
+[width="100%",cols="20%,16%,13%,11%,16%,13%,11%",options="header",]
+|===============================================================================================
+|MBaaS component |Idle RAM usage |RAM request |RAM limit |Idle CPU usage |CPU request |CPU limit
+|fh-mbaas |160 MiB |200 MiB |800 MiB |<1% |200 m |800 m
+|fh-messaging |160 MiB |200 MiB |400 MiB |<1% |200 m |400 m
+|fh-metrics |120 MiB |200 MiB |400 MiB |<1% |200 m |400 m
+|fh-statsd |75 MiB |200 MiB |400 MiB |<1% |200 m |400 m
+|mongodb |185 MiB |200 MiB |1000 MiB |<1% |200 m |1000 m
+|===============================================================================================
+
+[[adjusting-resource-usage-of-cloud-apps]]
+== Adjusting Resource Usage of Cloud Apps
+
+The resource requests and limits of Cloud Apps can be set the same way as for MBaaS components.
+There is no particular guideline for doing the adjustment in Cloud Apps.
+
+[[overview-of-resource-usage-of-cloud-app-components]]
+=== Overview of Resource Usage of Cloud App Components
+
+[width="100%",cols="24%,15%,12%,11%,15%,12%,11%",options="header",]
+|===================================================================================================
+|Cloud App component |Idle RAM usage |RAM request |RAM limit |Idle CPU usage |CPU request |CPU limit
+|nodejs-frontend |125 MiB |90 MiB |250 MiB |<1% |100 m |500 m
+|redis |8 MiB |100 MiB |500 MiB |<1% |100 m |500 m
+|===================================================================================================
+
+[[setting-resource-requests-and-limits]]
+== Setting Resource Requests and Limits
+
+The procedure for setting the resource requests and limits is the same for both MBaaS components and Cloud App components.
+
+. Identify the name of the deployment configuration.
+* *MBaaS components*: Names of deployment configurations match the names of components listed in the table in xref:overview-of-resource-usage-of-mbaas-components[].
+* *Cloud apps*: Find the OpenShift project for your RHMAP environment and edit the deployment configuration for your app in there.
+// TODO - we'll need more detail here, for Cloud Apps ^ how to find the environment? how to figure out the DC for the app?
+
+. Open the editor for the deployment configuration, for example `fh-mbaas`:
++
+[source,bash]
+----
+oc edit dc fh-mbaas
+----
+
+. Edit the `requests` and `limits`.
++
+The DeploymentConfig contains two `resources` sections with equivalent values: one in the `spec.strategy` section, and another in the `spec.template.spec.containers` section. Set the `cpu` and `memory` values of `requests` and `limits` as necessary, making sure the values stay equivalent between the two sections, and save the file.
++
+....
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: fh-mbaas
+  ...
+spec:
+  ...
+  strategy:
+    resources:
+      limits:
+        cpu: 800m
+        memory: 800Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi
+      ...
+    spec:
+      containers:
+        ...
+        resources:
+          limits:
+            cpu: 800m
+            memory: 800Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+....
++
+[NOTE]
+--
+Changing the deployment configuration triggers a new deployment. Once the deployment is complete, the resource limits are updated.
+--
+
+For more information on resources, see https://access.redhat.com/documentation/en/openshift-enterprise/3.2/paged/developer-guide/chapter-14-deployments#deployment-resources[Deployment Resources] in the OpenShift documentation.
+
+[[using-cluster-metrics-to-visualize-resource-consumption]]
+== Using Cluster Metrics to Visualize Resource Consumption
+
+It is possible to view the immediate and historical resource usage of pods and containers in the form of donut charts and line charts using the _Cluster Metrics_ deployment in OpenShift. Refer to https://docs.openshift.com/enterprise/3.2/install_config/cluster_metrics.html[Enabling Cluster Metrics^] in the OpenShift documentation for steps to enable cluster metrics.
+
+Once cluster metrics are enabled, in the OpenShift web console, navigate to _Browse > Pods_ and click on the component of interest.
+Click on the _Metrics_ tab to see the visualizations.
+
+image:metrics-ose.png[metrics-donut-charts]

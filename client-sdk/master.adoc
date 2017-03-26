@@ -1,0 +1,21 @@
+include::shared/attributes.adoc[]
+
+= Client SDK
+
+include::package-distribution-setup.adoc[leveloffset=+1]
+include::android.adoc[leveloffset=+1]
+
+//RHMAP-12156
+include::androidn.adoc[leveloffset=+1]
+
+include::ios.adoc[leveloffset=+1]
+
+include::ios-swift.adoc[leveloffset=+1]
+include::ios-swift-tp.adoc[leveloffset=+1]
+
+include::windows.adoc[leveloffset=+1]
+include::xamarin.adoc[leveloffset=+1]
+
+include::cordova.adoc[leveloffset=+1]
+include::web.adoc[leveloffset=+1]
+include::appcelerator-titanium.adoc[leveloffset=+1]

@@ -1,0 +1,119 @@
+include::shared/attributes.adoc[]
+
+[[backing-up-a-core]]
+= Backing up a Core
+
+[[overview]]
+== Overview
+You can back up a Core by following this procedure. After completing the 
+procedure and storing the backup data safely, you can restore a Core to the 
+state at the time of backup using the xref:restoring-a-core-backup[Restoring a Core Backup] procedure.
+
+[[requirements]]
+== Requirements
+* A self-managed Core installation on an OpenShift platform
+* A local installation of the `oc` binary
+* The `oc` binary has a logged in user on the platform you wish to back up
+* The `oc` binary has a logged in user with permission to run the `oc get pc` command
+
+[[expected-storage-requirements]]
+== Expected Storage Requirements
+As data stored by the Cloud Apps is stored in the MBaaS, not the Core, the expected storage requirements is generally measured in tens of MB.
+
+Other factors that have an impact on how much storage is
+required for backups include:
+
+- how often you backup
+- what compression is used
+- the length of time you store the backups
+
+[[what-data-is-backed-up]]
+== What Data is Backed Up
+
+You must back up the following items to back up a Core:
+
+* Mongodb Replica Set data
+* MySQL data
+* Nagios historical data
+* Core metrics files
+* Git files
+* Core SCM files
+
+[[backing-up-mongodb-data]]
+== Backing up the Mongodb Data
+Back up the Mongodb data using the `mongodump` command
+in combination with the `oc exec` command:
+[source,bash,numbered]
+----
+oc exec `oc get po --selector='deploymentconfig=mongodb-1' --template="{{(index .items 0).metadata.name}}"` bash -- -c '/opt/rh/rh-mongodb32/root/usr/bin/mongodump -u admin -p ${MONGODB_ADMIN_PASSWORD} --gzip --archive' > ./core7_mongodb.gz
+----
+
+[[backing-up-mysql-data]]
+== Backing up the MySQL Data
+Back up the MySQL data using the `mysqldump` command
+in combination with the `oc exec` command:
+[source,bash,numbered]
+----
+oc exec `oc get po --selector='deploymentconfig=mysql' --template="{{(index .items 0).metadata.name}}"` bash -- -c '/opt/rh/mysql55/root/usr/bin/mysqldump -h mysql -u ${MYSQL_USER} -p${MYSQL_PASSWORD} --all-databases' > mysql-backup.sql
+----
+
+[[backing-up-filesystem-data]]
+== Backing up Filesystem Data
+Back up the Nagios, metrics, git and scm files by copying the files on the associated persistent volumes:
+
+1. Determine the Volume names that need to be backed up, by entering the following command:
++
+[source,bash,numbered]
+----
+oc get pvc
+----
+The output of this command displays the volume name, for example:
++
+[source,bash,numbered]
+----
+NAME                      STATUS    VOLUME    CAPACITY   ACCESSMODES   AGE
+git-data                  Bound     pv5g32    5Gi        RWO           20h
+metrics-backup-log-data   Bound     pv5g39    5Gi        RWO           20h
+mongodb-claim-1           Bound     pv25g95   25Gi       RWO           20h
+mysql                     Bound     pv5g173   5Gi        RWO           20h
+nagios-claim-1            Bound     pv1g18    1Gi        RWO           2m
+scm-data                  Bound     pv25g45   25Gi       RWO           20h
+----
+This shows that only the pv5g32, pv5g39, pv1g18 and pv25g45 persistent volumes need to be backed up, corresponding to the persistent volumes named git-data, metrics-backup-log-data, nagios-claim-1 and scm-data.
+
+2. Determine the location of each of the filesystems that you want to back up using the `oc describe pv` command. For example to determine the location of the filesystems associated with the `pv5g32` persistent volume in step 1, enter the following:
++
+[source,bash,numbered]
+----
+oc describe pv pv5g32
+----
++
+The output of this command displays the filesystem location, for example:
++
+[source,bash,numbered]
+----
+Name:		pv5g32
+Labels:		<none>
+Status:		Bound
+Claim:		core7/git-data
+Reclaim Policy:	Delete
+Access Modes:	RWO
+Capacity:	5Gi
+Message:	
+Source:
+    Type:	HostPath (bare host directory volume)
+    Path:	/home/vagrant/exp5g32
+ 
+----
+3. Create an archive of the files. For example, to archive the files for the git-data volume in the steps above, enter the following command:
++
+[source,bash,numbered]
+----
+cd /home/vagrant/exp5g32 && tar -zcf ~/core_backup_2016_09_26_1300_001/core7_git-data.tar.gz .
+----
+
+[[backup-frequency]]
+== Backup Frequency
+Red Hat recommends backing up at least once per day, but you might decide to back up 
+critical data more frequently.
+

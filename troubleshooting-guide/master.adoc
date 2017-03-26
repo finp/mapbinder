@@ -1,0 +1,4 @@
+include::shared/attributes.adoc[]
+
+= Troubleshooting Guide
+include::troubleshooting.adoc[leveloffset=+1]

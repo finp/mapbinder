@@ -1,0 +1,170 @@
+include::shared/attributes.adoc[]
+
+[[working-with-projects-apps]]
+= Working with Projects and Apps
+
+.Overview
+This tutorial will cover how to create a project using FHC. It will also cover how to add apps to a project.
+
+.Requirements
+Before starting this tutorial, you should have completed the following tutorials:
+
+* xref:installing-fhc[Installing FHC]
+
+[[working-with-projects-apps-log-in-to-the-platform]]
+== Log in to the Platform
+
+First open up the `terminal`. In order to log in to the Platform, you must first set the target domain that you wish to log in to.
+
+To see a list of target domains available for selection, enter the `fhc targets` command in the terminal.
+
+[source,bash]
+----
+fhc targets
+----
+
+`fhc targets` displays a list of domains that you can select as your target. To specify which domain you wish to target, use the `fhc target` command.
+
+[source,bash]
+----
+fhc target exampleDomain.redhatmobile.com
+----
+
+This selects the 'exampleDomain.redhatmobile.com' domain as the target domain. Now when you log in to the Platform, you will be logging into this domain.
+
+Now that a domain has been targeted, the next step is to log in. To do this, use the `fhc login` command.
+
+[source,bash]
+----
+fhc login username@example.com password
+----
+
+To login, use the `fhc login` command followed by the username and password.
+
+Now that you have logged in, you are free to access the platform within the restrictions of the Teams the User is a Member of. Team Permissions determine the level of access Users have within the Platform. For more information on Teams and Permissions, see link:{ProductFeatures}#teams-and-collaboration[Teams & Collaborations].
+
+[[list-existing-projects]]
+== List existing Projects
+
+Once logged in, you can see a list of existing project by using the `fhc projects` command. In the Platform, a project is used as a container for grouping related apps together and all apps must be created within a project.
+
+[source,bash]
+----
+fhc projects
+----
+
+This will return a list of existing projects, ordered by lasted modified date - similar to the one below. If you do not yet have any projects, this list will be empty.
+
+[source,bash]
+----
+--------------------------------------------------------------------------
+| Id                       | Title            | No. Apps | Last Modified |
+--------------------------------------------------------------------------
+| 1234567890abcdefghijklmn | Hello World      | 3        | 3 hours ago   |
+--------------------------------------------------------------------------
+| 9876543210zyxwvutsrqpomn | Welcome to RHMAP | 2        | 3 hours ago   |
+--------------------------------------------------------------------------
+----
+
+If you wish to return the project list in raw JSON format, append the --json flag to the end of the command. This flag works for most FHC commands and is useful for piping output from FHC into other tools or into files. The JSON format typically returns significantly more data that the standard tabular format, so use with caution.
+
+[source,bash]
+----
+fhc projects --json
+----
+
+[[creating-a-project]]
+== Creating a Project
+
+Before we can create any apps, we must first create a Project to contain them. To learn more about Projects, see the link:{ProductFeatures}#projects[Projects Documentation]. In order to create a project, use the `fhc projects create` command. When using this command, you must specify a project name.
+
+While it is possible to create bare projects (that is, projects with no apps inside them), it is often prefereable to create a new project from one of the pre-defined templates. Project templates allow you to bootstrap your development by cloning the project template. This typically provides at least one Client App and one Cloud App.
+
+If you wish to use a template from the list of available templates, specify the _template id_ after the project name. Use the `fhc templates projects` command to view a list of project templates.
+
+[source,bash]
+----
+fhc templates projects
+----
+
+You can then use a template as a starting point for a project. In this tutorial, we are going to use the `hello_world_project` template as our starting point. This is a basic project with one Client App and one Cloud App, which uses the standard Hello World paradigm to demonstrate basic functionality.
+
+[source,bash]
+----
+fhc projects create helloWorld hello_world_project
+----
+
+The example above creates a new project based on the `hello_world_project` template. The response from the `fhc projects create` command is a JSON Object which represents the project and apps which have just been created. This output can be ignored for now.
+
+To verify that the project has been successfully created, enter the following command:
+
+[source,bash]
+----
+fhc projects
+----
+
+This will list all projects on the domain. Alternatively, you could just search for your specific project by piping the output of the `fhc projects` command to the grep command:
+
+[source,bash]
+----
+fhc projects | grep 'helloWorld'
+----
+
+The response from the above command (when the output is piped through grep) will be similar to this:
+
+[source,bash]
+----
+┃ XME5iUr2VoBV3DbXrVF7qApG ┃ helloWorld  ┃ 2  ┃ 3 minutes ago ┃
+----
+
+Since we used grep, the table heading has been removed. The headings associated with this output (as described above in 'Creating a Project') are: projectId, title, number of apps, and when it was last updated.
+
+From the console output you will have seen that your recently created project contains 2 apps. It contains both a Client App, and a Cloud App for it to communicate with. In order to list all apps within a given project, you can first use the `fhc projects` command to list the projects, select a projectId - or `guid` (Global Unique IDentifier) as it is commonly referred to - and then use that guid in conjunction with the `fhc apps` command to list all apps for a specific project.
+
+[source,bash]
+----
+fhc projects # lists all projects. From here you can select a projects guid
+
+fhc apps <the_selected_project_guid>
+----
+
+This will list all the apps in the project whose guid you specified. The output will be include the following information:
+
+* Id - The guid of the App.
+* Title - The title of the app. This will be used as the app name for Client Apps on mobile devices.
+* Description - A description for the application. This will be blank by default.
+* Type - They type of the app. Used by the Platform to distinguish different app types.
+* Git - The Git URL of the App. This can be used to clone the app for local development
+* Branch - The currently selected branch for editing app code in the platform.
+
+[[adding-apps-to-a-project]]
+== Adding Apps to a Project
+
+As you saw earlier, there are two apps in your newly created project, both a Client App, and a Cloud App. Typically, apps in the same project will be related to each other - for example, a native iOS and a native Android app, a hybrid mobile app and a Web Portal may all co-exist within the same project. Apps which have no relationship with each other should be housed in separate projects.
+
+You can add as many apps as you like to a project. Apps are normally added from an existing template (similar to how we created a project from a template). To see a list of App Templates, enter the following command:
+
+[source,bash]
+----
+fhc templates apps
+----
+
+This will display a list of all available app templates. There are a selection of templates available for both Client and Cloud apps. In order to add an app to a project, you will need to specify the project id, the name for the app, and the app template. If no template is specified, a blank Client App will be selected as default.
+
+[source,bash]
+----
+fhc app create --project=<projectId> --title=<appTitle> --template=<appTemplate>
+----
+
+[source,bash]
+----
+fhc app create --project=XME5iUr2VoBV3DbXrVF7qApG --title='My Native iOS App' --template=blank_native_ios_client
+----
+
+This will successfully create a new app within the specified project. If you once again list all apps in your project, you will now see the newly created third app listed.
+
+[[working-with-projects-apps-next-steps]]
+== Next Steps
+
+* xref:developing-code-locally[Local App Development]
+* xref:building-an-app-binary[Building App Binaries]

@@ -1,0 +1,90 @@
+include::shared/attributes.adoc[]
+
+[[configure-core-to-use-build-farm]]
+= Configuring the {ProductShortName} Core to use the Build Farm
+
+[[build-farm-overview]]
+== Overview
+The Build Farm comprises two dedicated hosted build server used by the {ProductShortName} Core to create binary files for iOS and Android Client Apps.
+Build Farm servers can be accessed using the following URLs:
+
+* Android build server URL: `https://androidbuild.feedhenry.com`
+* iOS build server URL: `https://iosbuild.feedhenry.com`
+
+You can configure the {ProductShortName} Core to use the Build Farm during Core installation. The configuration can also be done later by modifying the values of the appropriate environment variables in the {ProductShortName} Core deployment configuration.
+
+[[connect-core-to-build-farm-during-installation]]
+== Connecting the {ProductShortName} Core to the Build Farm during installation.
+
+To create a new instance of {ProductShortName} Core with Build Farm support, execute the `new-app` command with the name of the Core template and the following parameters:
+
+[source,bash]
+----
+oc new-app fh-core-frontend.json \
+    --param=BUILDER_ANDROID_SERVICE_HOST="https://androidbuild.feedhenry.com" \
+    --param=BUILDER_IPHONE_SERVICE_HOST="https://iosbuild.feedhenry.com"
+----
+
+[[configure-existing-core-to-use-build-farm]]
+== Configuring an existing instance of {ProductShortName} Core to use the Build Farm.
+. Use the `oc` CLI tool to log in as an administrator to the OpenShift cluster that hosts your instance of {ProductShortName} Core and locate the node running `millicore`.
+. To edit the `millicore` deployment configuration, execute the following command:
++
+[source,bash]
+----
+oc edit dc/millicore
+----
++
+This displays an editor with the `millicore` deployment configuration file.
+To make your instance of {ProductShortName} Core use the Build Farm for iOS and Android Client App builds, you must alter the values of the following environment variables, as described below:
+. Locate both instances of the `BUILDER_ANDROID_SERVICE_HOST` environment variable and change the value of the  *first* instance to the Build Farm URL for Android *without* the initial `https://` prefix, as shown below:
++
+....
+BUILDER_ANDROID_SERVICE_HOST="<androidbuildfarmhost>"
+....
++
+[NOTE]
+--
+To determine the values for the `BUILDER_ANDROID_SERVICE_HOST` environment variable, contact link:https://access.redhat.com/support/[Red Hat Support^] asking for the {ProductShortName} Build Farm URLs that are appropriate for your region.
+--
++
+. Change the value of the *second* instance of the `BUILDER_ANDROID_SERVICE_HOST` environment variable to the Build Farm URL for Android *including* the initial `https://` prefix, as shown below:
++
+....
+BUILDER_ANDROID_SERVICE_HOST="<androidbuildfarmurl>"
+....
++
+. Locate both instances of the `BUILDER_IPHONE_SERVICE_HOST` environment variable and change the value of the  *first*  instance to the Build Farm URL for iOS *without* the initial `https://` prefix, as shown below:
++
+....
+BUILDER_IPHONE_SERVICE_HOST="<iosbuildfarmhost>"
+....
++
+[NOTE]
+--
+To determine the values for the `BUILDER_ANDROID_SERVICE_HOST` and `BUILDER_IPHONE_SERVICE_HOST` environment variables, contact link:https://access.redhat.com/support/[Red Hat Support^] asking for the {ProductShortName} Build Farm URLs that are appropriate for your region.
+--
++
+. Change the value of the *second* instance of the `BUILDER_IPHONE_SERVICE_HOST` environment variable to the Build Farm URL for iOS *including* the initial `https://` prefix, as shown below:
++
+....
+BUILDER_IPHONE_SERVICE_HOST="<iosbuildharmurl>"
+....
+
+[NOTE]
+--
+Changing the values of environment variables in the deployment configuration triggers a re-deployment of the {ProductShortName} Core. Changes to the configuration take effect after the re-deployment.
+--
+
+[[verify-build-farm-setup]]
+== Verifying the Build Farm setup
+
+Follow the steps below to test the Build Farm configuration on your instance of {ProductShortName} Core:
+
+. Log in to the {ProductShortName} Studio.
+. link:{GettingStarted}#create-a-project[Create a new project] using the _Cordova Hello World_ template.
+. Open your newly created project, navigate go to the _Apps, Cloud Apps & Services_ section and from there, select the _Cordova App_.
+. On the left-hand sidebar, navigate to the _Build_ section.
+. Select _Android_ in the top section of the screen and click the _Build_ button trigger the build. To see more details about the progress of the ongoing build, expand the build log by clicking the progress bar in the bottom section of the screen.
+
+If the Build Farm is configured correctly, you will be prompted to download the Android Client App binary file when the build is complete.

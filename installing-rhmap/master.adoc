@@ -1,0 +1,92 @@
+include::shared/attributes.adoc[]
+
+[[installing-rhmap]]
+= Installing RHMAP
+
+[[installing-rhmap-overview]]
+== Overview
+
+Depending on your RHMAP subscription, you must either:
+
+* Install only the MBaaS on your infrastructure, having the Core managed and hosted by Red Hat.
+* Install both the MBaaS and the Core on your infrastructure.
+
+Installation of an RHMAP cluster consists of the following key steps:
+
+* xref:preparing-infrastructure-for-installation[] -- each node in your cluster must have Red Hat Enterprise Linux installed and be registered with Red Hat Subscription Manager, and OpenShift must be installed in the cluster.
+* xref:installing-rhmap-installing-the-core[], or xref:accessing-the-hosted-core[] -- depending on your subscription.
+* xref:installing-rhmap-installing-the-mbaas[] -- one or more MBaaSes can be installed.
+* xref:finishing-the-installation[Post-installation tasks] -- setting up email configuration, logging, or connecting the Build Farm.
+
+include::rhmap_pre_install_steps.adoc[leveloffset=+1]
+
+[[installing-or-accessing-the-core]]
+== Installing or Accessing the Core
+
+Depending on your RHMAP subscription, you must either:
+
+--
+* xref:installing-rhmap-installing-the-core[Install the RHMAP Core] on your own infrastructure.
+* xref:accessing-the-hosted-core[Access an instance of RHMAP Core] hosted and managed by Red Hat.
+--
+
+[[installing-rhmap-installing-the-core]]
+=== Installing the Core
+
+To install the self-managed RHMAP Core, follow the
+link:{CoreAdministrationAndInstallationGuide}[Core Administration and Installation Guide].
+
+IMPORTANT: When you are provisioning a production environment, single pod templates are used for {ProductShortName} Core, whereas 3 pod templates are used for {ProductShortName} MBaaS. Typically, a production environment requires that the MBaaS is distributed across 3 data centers. This configuration is not applicable to other environments, for example development, where an MBaaS is provisioned with single pod templates.
+
+[[accessing-the-hosted-core]]
+=== Accessing the Hosted Core
+
+After Red Hat receives the purchase order for an {ProductShortName} 4.2 subscription with a hosted Core,
+a member of the sales team internally requests a new {ProductShortName} domain for access to an instance of the {ProductShortName} Core hosted by Red Hat.
+
+Once the domain is created, a representative of the Red Hat Customer Enablement team will instruct you to install the MBaaS.
+
+The following steps for getting access to {ProductShortName} Core are performed by a representative of the Red Hat Customer Enablement team:
+
+. Create a domain.
++
+The domain, such as `customername.redhatmobile.com`, hosts the {ProductShortName} Core for a single customer.
+
+. Create an administrator account.
++
+An {ProductShortName} administrator account is created in the domain,
+and the customer's technical contact receives an activation e-mail which allows access to the domain using the new account.
+
+[[installing-rhmap-installing-the-mbaas]]
+== Installing the MBaaS
+
+To install the MBaaS, follow the
+link:{MBaaSAdministrationAndInstallationGuide}[MBaaS Administration and Installation Guide].
+
+IMPORTANT: When you are provisioning a production environment, single pod templates are used for {ProductShortName} Core, whereas 3 pod templates are used for {ProductShortName} MBaaS. Typically, a production environment requires that the MBaaS is distributed across 3 data centers. This configuration is not applicable to other environments, for example development, where an MBaaS is provisioned with single pod templates.
+You can set up multiple MBaaS instances for a single Core.
+
+[[finishing-the-installation]]
+== Finishing the Installation
+
+After installing the Core and the MBaaS, you can enable several features to access all functionality of the RHMAP cluster, if they were not enabled during installation:
+
+* Set up centralized logging.
+** link:{OperationsGuide}#enabling-centralized-logging[Enabling Centralized Logging]
+
+* Set up monitoring.
+** link:{OperationsGuide}#monitoring-rhmap-with-cockpit[Monitoring RHMAP with Cockpit]
+** link:{OperationsGuide}#monitoring-rhmap-with-nagios[Monitoring {ProductShortName} with Nagios]
+
+.Core
+* Set up email configuration for the Core.
+** link:{CoreAdministrationAndInstallationGuide}:modifying-smtp-server-setup-in-the-core[Modifying SMTP Server Setup in the Core]
+
+* Connect the Build Farm.
+** link:{CoreAdministrationAndInstallationGuide}#modifying-build-farm-configuration[Modifying Build Farm Configuration]
+
+.MBaaS
+* Enable the MBaaS and Cloud Apps to make use of all available system resources.
+** link:{MBaaSAdministrationAndInstallationGuide}#adjusting-system-resource-usage-of-the-mbaas-and-cloud-apps[Adjusting System Resource Usage of the MBaaS and Cloud Apps]
+* Set up email configuration for the MBaaS.
+** link:{MBaaSAdministrationAndInstallationGuide}#setting-up-smtp-for-cloud-app-alerts[Setting Up SMTP for Cloud App Alerts]

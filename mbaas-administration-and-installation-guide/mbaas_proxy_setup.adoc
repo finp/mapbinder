@@ -1,0 +1,45 @@
+
+= Post Installation Proxy Set-up
+
+After installing the MBaaS, configure it to use a proxy.
+
+. Configure the {ProductShortName} node proxy:
++
+[source,bash]
+----
+oc edit configmap node-proxy
+----
++
+This opens the node-proxy config map in your default editor.
++
+Edit the following values in the relevant data keys:
++
+[source,bash]
+----
+http-proxy: "http://<proxy-host>:<proxy-port>"
+https-proxy: "http://<proxy-host>:<proxy-port>"
+----
++
+NOTE: Make sure that you only use the http protocol for the https-proxy setting.
++
+[source,bash]
+----
+http-proxy: "http://<username>:<password>@<proxy-host>:<proxy-port>"
+https-proxy: "http://<username>:<password>@<proxy-host>:<proxy-port>"
+----
++
+NOTE: Make sure that you only use the http protocol for the https-proxy setting.
+
+. Redeploy  all the relevant pods to pick up the new configuration. The services that require a pod redeploy are listed below. Use the following command for each of the services.
++
+[source,bash]
+----
+for i in fh-mbaas fh-statsd fh-metrics fh-messaging; do oc deploy ${i} --latest; done
+----
++
+On OpenShift 3.4, use the following command:
++
+[source,bash]
+----
+for i in fh-mbaas fh-statsd fh-metrics fh-messaging; do oc rollout latest ${i}; done
+----

@@ -1,0 +1,14 @@
+include::shared/attributes.adoc[]
+
+= Platform API
+
+include::apikeys_api.adoc[leveloffset=+1]
+include::appstore_api.adoc[leveloffset=+1]
+include::authpolicies_api.adoc[leveloffset=+1]
+include::cloudalerts_api.adoc[leveloffset=+1]
+include::cloudevents_api.adoc[leveloffset=+1]
+include::devices_api.adoc[leveloffset=+1]
+include::endpointsecurity_api.adoc[leveloffset=+1]
+include::roles_api.adoc[leveloffset=+1]
+include::teams_api.adoc[leveloffset=+1]
+include::users_api.adoc[leveloffset=+1]

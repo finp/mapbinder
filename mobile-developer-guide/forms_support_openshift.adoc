@@ -1,0 +1,80 @@
+include::shared/attributes.adoc[]
+
+[[enabling-forms-support-in-openshift-2-targets]]
+= Enabling Forms Support in OpenShift 2 Targets
+
+Support for using Forms in Cloud Apps deployed to OpenShift 2 targets is not immediately available. It can be enabled by
+following the steps outlined in this document.
+
+[NOTE]
+This guide only applies to Platform instances with support for OpenShift 2 targets, for example link:http://openshift.feedhenry.com[openshift.feedhenry.com^]. Other targets have Forms support available without any extra configuration.
+
+[[whats-behind-forms-in-the-platform]]
+== What's behind Forms in the Platform
+
+There's a service in the back end of the Platform responsible for handling Forms-related operations, called
+`fh-mbaas`. Its functions are exposed through the `$fh.forms` API and include access to form definitions, submissions
+and deployment of forms.
+
+With Red Hat MBaaS targets an instance of the `fh-mbaas` is always available and doesn't need to be manually enabled.
+This is however not the case for OpenShift 2 targets which, by default, don't have the `fh-mbaas` service deployed.
+This functionality is provided separately as a service template in the Platform which can be deployed to an
+OpenShift 2 target to enable Forms support.
+
+image:fh-mbaas-openshift-app.png[fh-mbaas OpenShift application]
+
+On the OpenShift side the Forms support is implemented through a cartridge. This cartridge is hosted, along with a
+Node.js runtime and database cartridges, in a separate application in your OpenShift account and exposes its
+functionality to all of your Forms-based applications.
+
+[[how-to-enable-forms-support-for-openshift-2-targets]]
+== How to enable Forms support for OpenShift 2 targets
+
+Prerequisites:
+
+* a {ProductShortName} account with support for OpenShift 2 targets
+* an existing OpenShift 2 target and an associated environment
+
+The following steps will guide you through the process of enabling your app to use Forms in an OpenShift 2 target:
+
+. Create and deploy an instance of the _OpenShift mBaaS Service_.
+
+.. In the _Services & APIs_ section of the Studio, click _Provision MBaas Service/API_
+
+.. From the list of available services, choose __OpenShift mBaaS Service__, enter any suitable name for the
+service instance and click _Next_
+
+.. Wait until the log window shows _Service is ready!_ and click __Finish__. The Service Details page will be displayed.
+
+.. Navigate to the _Deploy_ section in the left-hand side menu
+
+.. Select an appropriate OpenShift-backed environment from the dropdown menu on the right-hand side of the screen
+
+.. Click _Deploy Cloud App_
+
+.. Wait until the service gets deployed. In the _Deploy History_ section at the bottom of the screen, the deployment
+status and result are displayed. It might happen that these indicators don't reflect the immediate state. Reload the
+page to update the status and check that the correct environment is selected. After the deployment is finished, reload
+the page again and check that there's a _Current Host_ field in _Deploy Options_ at the top of the screen.
++
+[NOTE]
+--
+It may take several minutes for the service to get deployed, as this involves creating a gear, provisioning several cartridges, cloning a git repository and other setup operations. This is only performed once for an OpenShift 2 target. Similarly, the first deployment of a Cloud App might take longer than any subsequent deployments.
+--
++
+image:fh-mbaas-service-deploy-done.png[Deploy History of a service]
+
+..  Write down or copy the value of _Current Host_ field of the _Deploy Options_ section of the screen. The URL points to the newly created OpenShift application which acts as the fh-mbaas service.
++
+image:fh-mbaas-host.png[Current Host of a deployed fh-mbaas service]
+
+.  Set the correct fh-mbaas host URL in an OpenShift 2 target.
+..  Navigate to the _Admin_ / _MBaaS Targets_ section of Studio and open an existing OpenShift 2 MBaaS target.
+..  Enter the URL of the fh-mbaas service that you saved earlier into the *fh-mbaas Host* field.
+..  Click _Save MBaaS_.
+
+Any Cloud App deployed to this new OpenShift-backed environment will have access to Forms functionality.
+
+A single fh-mbaas service can be used to provide Forms support to multiple OpenShift 2 MBaaS targets and can reside on a
+different OpenShift instance than the OpenShift 2 MBaaS targets using it. Cloud apps using Forms can be deployed to any
+OpenShift 2 target as long as that target has a valid _fh-mbaas Host_ set.

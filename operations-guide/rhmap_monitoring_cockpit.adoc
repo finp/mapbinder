@@ -1,0 +1,86 @@
+include::shared/attributes.adoc[]
+
+[[monitoring-rhmap-with-cockpit]]
+= Monitoring {ProductShortName} with Cockpit
+
+[[monitoring-cockpit-overview]]
+== Overview
+
+System resources of nodes and containers in the Core and MBaaS on OpenShift 3 can be monitored and managed using __Cockpit__.
+
+Cockpit is a system administration tool, that provides insights into how nodes and containers are performing. It lets you monitor current values and adjust limits on system resources, control lifecycle of container instances, and manipulate container images.
+For more information about Cockpit, refer to the official web site of the http://cockpit-project.org/[Cockpit Project^] and its http://cockpit-project.org/guide/latest/[Documentation^].
+
+[[installation]]
+== Installation
+
+For most OpenShift 3 instances, Cockpit is most likely already installed on all nodes.
+This is not the case if your nodes use the RHEL Atomic Host, where Cockpit needs to be installed manually.
+
+To check whether Cockpit is installed in your OpenShift cluster, try visiting the URL of the Cockpit web interface:
+
+....
+  http://<master node host>:9090
+....
+
+If there's no response to the request, Cockpit is most likely not installed.
+
+[[installing-cockpit-manually]]
+=== Installing Cockpit Manually
+
+. Install Cockpit on nodes.
++
+The following three steps must be repeated for each node you wish to monitor in your OpenShift cluster.
+
+. Log in to the node.
++
+[source,bash]
+----
+ssh <node host>
+----
+
+. Install Cockpit packages.
++
+[source,bash]
+----
+yum install cockpit cockpit-docker
+----
+
+. Enable and start the Cockpit service.
++
+[source,bash]
+----
+systemctl enable cockpit.socket
+systemctl start cockpit.socket
+----
+
+. Create a Cockpit system user on master.
++
+To log in to the Cockpit web interface, you will have to provide the username and password of an operating system user existing on the OpenShift master node. This guide refers to this user as the __Cockpit system user__. To allow Cockpit to access system resources, perform operations on Docker containers and Kubernetes resources, the Cockpit system user must:
++
+--
+* be in the `docker` group;
+* be able to log in to other nodes using `ssh`;
+* be able to perform Kubernetes operations.
+--
++
+Create the Cockpit system user on the master node, or modify an existing user to have the necessary privileges.
+
+[[viewing-the-containers-on-an-openshift-node]]
+== Viewing the Containers on an Openshift Node
+
+Navigate to the Cockpit dashboard for a node in a web browser (port 9090 by default) and log in as the Cockpit system user.
+To see all containers deployed on that node, click _Containers_ in the left-hand side menu.
+
+image:cockpit-containers.png[View containers]
+
+You can filter the list to only display running containers, using the dropdown menu above the list of containers. This view lets you see the RAM and CPU usage of all running containers.
+
+If you select an MBaaS node, you will see the containers for all MBaaS components. Clicking on a container will show the current logs, CPU shares, and RAM usage. In the _Tools_ menu on the left hand side, you can get terminal access into the node for further investigation.
+
+[[viewing-multiple-hosts-simultaneously]]
+== Viewing Multiple Hosts Simultaneously
+
+Cockpit can connect to multiple hosts from a single Cockpit session.
+This can be useful to compare resource usage of two or more machines in the same dashboard.
+See http://cockpit-project.org/guide/latest/feature-machines.html[Multiple Machines^] in the Cockpit documentation for more information.

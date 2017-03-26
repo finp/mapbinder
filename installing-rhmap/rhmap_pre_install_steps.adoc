@@ -1,0 +1,135 @@
+include::shared/attributes.adoc[]
+
+// preparing infrastructure
+[[preparing-infrastructure-for-installation]]
+= Preparing Infrastructure for Installation
+
+. Ensure you have infrastructure satisfying hardware requirements.
++
+Use the https://access.redhat.com/labs/rhmap/[Red Hat Mobile Application Platform 4.x sizing tool] to find out how many nodes with how many processors, how much RAM and storage are required to run RHMAP. Alternatively, see the https://access.redhat.com/node/2456121[Infrastructure Sizing Considerations for Installation of RHMAP MBaaS] for a full reference of all configurations.
+
+. Install RHEL.
+
+NOTE: See the https://access.redhat.com/articles/2176281[OpenShift Container Platform Tested Integrations^] site to decide on what version of RHEL to install.
+
++
+Install RHEL on each machine that will serve as a node in the OpenShift cluster backing the Core or the MBaaS.
+Follow the https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Installation_Guide/index.html[RHEL Installation Guide^].
+
+. Register all cluster nodes using RHSM and attach the nodes to the {ProductShortName} subscription.
++
+[[register-with-rhsm]]
+Perform the following procedure for each node in the cluster.
++
+..  Register the node with RHSM.
++
+Replace `<username>` and `<password>` with the user name and password for your Red Hat account.
++
+[source,bash]
+----
+sudo subscription-manager register --username=<username> --password=<password>
+----
++
+----
+Registering to: subscription.rhn.redhat.com:443/subscription
+The system has been registered with ID: abcdef12-3456-7890-1234-56789012abcd
+----
+
+.. List the available subscriptions.
++
+[source,bash]
+----
+sudo subscription-manager list --available
+----
+
+..  Find the pool ID for an {ProductShortName} subscription and attach it.
++
+[source,bash]
+----
+sudo subscription-manager attach --pool=<pool_id>
+----
++
+You will see output similar to the following:
++
+----
+Successfully attached a subscription for: {ProductName}
+----
+
+.  Install OpenShift version {SupportedOCPVersion}.
++
+See the https://access.redhat.com/documentation/en/openshift-enterprise/version-3.2/installation-and-configuration/[Installation and Configuration guide^] in the OpenShift documentation for detailed installation procedure.
++
+[NOTE]
+--
+In the OpenShift _Installation and Configuration_ guide:
+
+* Skip steps that you have already performed as part of this procedure, for example, steps 1, 2 and 3 in section __2.2.5.1. Software Prerequisites – Registering the Hosts__,
+which describe the registration process.
+
+* Choose the default, RPM-based installation method. See section https://access.redhat.com/documentation/en/openshift-enterprise/version-3.2/installation-and-configuration/#install-config-install-rpm-vs-containerized[2.3. RPM vs. Containerized^] for more details.
+
+* Use Node.js Version 4.0.0 or higher when enabling Image Streams. Node.js version 0.10.x and 0.8 are deprecated and will be removed from RHMAP on June 30th 2017.
+--
++
+Use the https://access.redhat.com/labs/rhmap/[Red Hat Mobile Application Platform 4.x sizing tool] or follow the https://access.redhat.com/node/2456121[considerations for infrastructure sizing^] to determine how many nodes to configure in your OpenShift cluster.
+. Enable Docker to access container images of {ProductShortName} components.
++
+[[enable-docker-to-access-rhmap-images]]
+Perform the following procedure for each node in the cluster.
++
+.. Enable the Subscription-Manager Repo
+... For RHEL 7.2, enable the `rhel-7-server-optional-rpms`
++
+[source,bash]
+----
+sudo subscription-manager repos --enable=rhel-7-server-optional-rpms
+----
++
+----
+Repository 'rhel-7-server-optional-rpms' is enabled for this system.
+----
++
+... For RHEL 7.3, enable the `rhel-7-server-rpms`
++
+[source,bash]
+----
+sudo subscription-manager repos --enable=rhel-7-server-rpms
+----
++
+----
+Repository 'rhel-7-server-rpms' is enabled for this system.
+----
+
+.. Install the RHSM plugin `subscription-manager-plugin-container`.
++
+[source,bash]
+----
+sudo yum install subscription-manager-plugin-container
+----
+
+.. Run `rhsmcertd-worker` to refresh the local certificate store.
++
+`rhsmcertd-worker` must be run as the superuser, otherwise it may fail to work without a warning.
++
+[source,bash]
+----
+sudo /usr/libexec/rhsmcertd-worker
+----
++
+To verify that the certificates were downloaded, check the contents of the `/etc/docker/certs.d/` directory.
++
+[source,bash]
+----
+ls -l /etc/docker/certs.d/ | grep access.redhat.com
+----
++
+`/etc/docker/certs.d/` now contains directories `access.redhat.com` and `registry.access.redhat.com`.
++
+----
+drwxr-xr-x. 2 root root   67 Jun 01 10:30 access.redhat.com
+drwxr-xr-x. 2 root root   67 Jun 01 10:30 registry.access.redhat.com
+----
+
+After registering each node with RHSM, downloading the entitlement certificates,
+and installing OpenShift,
+you can proceed to installation of the Core and the MBaaS.

@@ -1,0 +1,66 @@
+include::shared/attributes.adoc[]
+
+[[support-for-windows-platforms]]
+= Support for Windows Platforms
+
+Red Hat Mobile Application Platfrom ({ProductShortName}) supports the development of Client Apps for Windows-based devices. For a detailed
+tutorial, see xref:developing-forms-apps-and-cordova-apps-for-windows[Developing Forms Apps and Cordova Apps for Windows].
+
+[[windows-supported-platforms]]
+== Supported Platforms
+
+The current version of {ProductShortName} targets Windows Phone version 8 and higher. Workarounds for platform-specific issues are provided further in this guide.
+
+* **Windows 10 Universal Apps (Phone, Tablet and Desktop)**:
+** Full support, except:
+*** Apps can't be built in the {ProductShortName} and must be built locally
+* **Windows 8.1 Universal Apps (Phone, Tablet and Desktop)**:
+** Full support, except:
+*** Apps can't be built in the {ProductShortName} and must be built locally
+*** Cordova apps need a small workaround to enable support for dynamic content
+* **Windows Phone 8**:
+** Full support
+* **Windows Phone 7,7.5 and older**, +
+* **Windows 8 Pro for Tablets**, +
+* **Windows 8 RT for Tablets**, +
+* **Windows 7 and 8 Desktop**:
+** No support
+
+[[building-windows-apps-locally]]
+== Building Windows Apps Locally
+
+Due to changes in Microsoft's licensing of its development tools, it is currently not possible to build Apps for Windows 8.1 and Windows 10 directly in {ProductShortName}. {ProductShortName} apps for the affected platforms have to be built manually in your local development environment.
+
+. First, clone the repository of your Client App.
++
+[source,bash]
+----
+git clone <Git_URL>
+----
+
+. Locate the solution file (.sln) in the project folder and open it in Visual Studio.
+
+. In Visual Studio, select a solution configuration and platform and build the project by pressing the F7 key. For more details, see the official documentation: https://msdn.microsoft.com/en-us/library/windows/apps/ff928362%28v=vs.105%29.aspx#BKMK_vs[Building a Windows Phone app in Visual Studio^].
+
+. Once the build is finished, a binary with a `.xap` or `.appx` extension will be located at `<project_name>/<solution_name>/Bin/<solution_configuration>`. The binary file can be deployed to Windows devices or uploaded to the {ProductShortName} App Store.
+
+[[enabling-dynamic-content-in-cordova-on-windows-8-1]]
+== Enabling Dynamic Content in Cordova on Windows 8.1
+
+On Windows 8.1, security restrictions are in place that prevent apps from using properties such as `innerHTML` and `outerHTML`. This in turn prevents any dynamic content to be injected and most JavaScript frameworks will therefore fail to function properly. This also prevents Cordova apps and {ProductShortName} drag and drop apps from functioning.
+
+A workaround for this issue is to reference a single JavaScript file provided by Microsoft, which relaxes the security restriction:
+
+. Download the `winstore-jscompat.js` file: https://raw.githubusercontent.com/MSOpenTech/winstore-jscompat/master/winstore-jscompat.js.
+
+. Copy the `winstore-jscompat.js` file into the `www` folder of your project
+
+. Reference the file from any HTML that requires dynamic content manipulation. `winstore-jscompat.js` must be referenced before any other JavaScript framework including `cordova.js` or `feedhenry.js`.
++
+[source,html]
+----
+<!-- above feedhenry.js or cordova.js-->
+<script src="winstore-jscompat.js" type="text/javascript"></script>
+----
+
+For more information about this workaround, see the description in the https://github.com/MSOpenTech/winstore-jscompat[MSOpenTech/winstore-jscompat^] repository.

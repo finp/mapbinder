@@ -1,0 +1,298 @@
+include::shared/attributes.adoc[]
+
+[[staging-cloud-apps-to-redhat-openshift-online-paas]]
+= Staging Cloud Apps to RedHat OpenShift Online PaaS
+
+.Overview
+The intention of this guide is to provide step-by-step instructions for using OpenShift Online as an MBaaS target in the {ProductName} ({ProductShortName}) and deploying applications to it.
+
+[[what-is-openshift-online]]
+== What is OpenShift Online?
+
+https://www.openshift.com/[OpenShift Online^] is Red Hat's public cloud application development and hosting platform that automates the provisioning, management and scaling of applications.
+
+[[how-does-openshift-online-integrate-with-rhmap]]
+=== How Does OpenShift Online Integrate with {ProductShortName}?
+
+OpenShift Online users can use their OpenShift Online credentials to log in to the {ProductShortName} and use their available OpenShift Online gears as an MBaaS target for Cloud Apps and services. _MBaaS targets_ are
+containerised infrastructure that Cloud Apps and their associated services can be deployed to. One or more MBaaS targets can also be collected into an __Environment__. Users can then create multiple environments (with each environment having one or more MBaaS targets), to enable different stages of development (for example Dev, UAT, and Production environments) and __Project Lifecycle Management__.
+
+In addition, all operations such as provisioning, logging, and endpoint security relating to MBaaS Services also apply to OpenShift Online MBaaS's. For more information on these operations see the link:{ProductFeatures}#mbaas-services[MBaaS Services Product Features page].
+
+image:openshift-online-components.png[OpenShift Online Components]
+
+[[how-does-rhmap-affect-my-available-openshift-online-gears]]
+=== How Does {ProductShortName} Affect my Available OpenShift Online Gears?
+
+{ProductShortName} applications are treated no differently than any other applications you would deploy to OpenShift Online. You may use some or all of your available gears to deploy {ProductShortName} cloud and web applications, and you are only restricted by the number of gears you have available. As with any application running on OpenShift Online, the number of available gears and features depends on the https://www.openshift.com/products/pricing/plan-comparison[current plan you have^]. For more details on how the {ProductShortName} utilizes OpenShift Online gears, refer to the xref:gears[gears section].
+
+[[limitations]]
+=== Limitations
+
+Using OpenShift Online as an MBaaS target with {ProductShortName} is currently available as a developer preview and is not recommended for use in a production environment at this time.
+
+[[getting-started]]
+== Getting Started
+
+All you need to get started is an OpenShift Online Account. You can use your existing account or https://www.openshift.com/app/account/new?then=%2Fapp%2Fconsole[create a new one^].
+
+NOTE: This only works when using an OpenShift Online account to log in to {ProductShortName}. This feature is not available on existing {ProductShortName} accounts.
+
+[[initial-login-and-setup]]
+=== Initial Login and Setup
+
+Once you have an OpenShift Online account, you may then use those credentials to log in to {ProductShortName}. The first time you log in using your OpenShift Online account, {ProductShortName} will guide you through the setup process. On subsequent logins, you will be directed to {ProductShortName} without going through the setup process.
+
+NOTE: In order to keep up with demand, we are rolling out access by invite only. You may register your interest using the provided link on the login page and will be sent an invite email as soon as space becomes available. Your invite email will contain the appropriate login link (containing an access token) to grant you access. You must use this link to initially access the login page in order to log in.
+
+To start the setup process:
+
+. Navigate to https://openshift.feedhenry.com/login[{ProductShortName} OpenShift Online login page^] and click __Request an Invite__.
+. Fill in the appropriate details in the sign up form (including your _Promotion Code_ if available) and click __Sign Up__.
++
+image:openshift-signup.png[OpenShift Sign Up]
+
+. Once you receive you invite email, navigate to {ProductShortName} via the link provided in your invite email and login using your OpenShift Online Credentials.
+. After you successfully log in, {ProductShortName} will ask you to create a domain name. Enter the desired name of your domain and click __Create__.
+. {ProductShortName} will then create your domain and begin the required setup process automatically. Essentially, {ProductShortName} will create an Authorization Token and Public Key, which will allow {ProductShortName} to communicate with your OpenShift Online gears and deploy applications on your behalf.
+
+Once the automated setup process is complete, {ProductShortName} is now connected to your OpenShift Online account. At this point, OpenShift Online should appear as an MBaaS target when deploying any cloud application:
+
+image:openshift-mbaas-target.png[OpenShift Online MBaaS]
+
+To illustrate how to use OpenShift Online as an MBaaS target, we will walk through creating a new sample application from a template and deploying the cloud portions to OpenShift Online.
+
+[[creating-a-sample-application]]
+=== Creating a Sample Application
+
+To create a new application:
+
+. Click on _Projects_ at the top-left of the screen.
+. Click on the _New Project_ button on the left side of the screen.
+. Select a project with at least one cloud component (for example __Hello World Project__).
+. Enter a name for the project and click the _Create_ button on the right side of the screen.
+. Once the project is done being created, click the _Finish_ button at the bottom of the screen.
+. You should now be on the details page of the project.
+
+[[deploying-a-cloud-app-to-openshift-online-using-rhmap]]
+=== Deploying a Cloud App to OpenShift Online using {ProductShortName}
+
+To deploy a Cloud App to OpenShift Online:
+
+. If you're not already on the main details section for your Cloud Apps, navigate to it.
+. Choose a cloud or web app to deploy to OpenShift Online (for example Cloud App).
+. Notice on the details page of the app that OpenShift is listed next to __MBaaS Deploy Targets__.
++
+image:openshift-details-mbaas-target.png[OpenShift Online MBaaS]
+
+. Click on _Deploy_ on the left side of the screen.
+. Click on the _Deploy Cloud App_ button at the bottom of the screen.
++
+image:openshift-deploy-cloud-app.png[OpenShift Online MBaaS]
+
+. This will start the deployment and show the status.
++
+[NOTE]
+--
+Deploying to OpenShift Online may take a long time (that is, several minutes) for the initial deployment. Subsequent deployments of the same app will take significantly less time. Once a deployment has been started, if you do not wish to follow the status you may navigate away from the page, and the app will continue to deploy to the Environment.
+--
++
+[NOTE]
+--
+You may receive a warning related to running out of gears. This occurs when you have no available gears left on your OpenShift Online account. You may need remove other applications from your OpenShift Online account to free up gears.
+--
++
+image:openshift-deploy.png[OpenShift Online MBaaS]
+
+. Once the deployment has successfully completed, return to the app details page by clicking on _Details_ on the left side of the screen.
+. To verify the app has been deployed click on the link next to __Current Host__.
+. You can also log in to your OpenShift Online account to see the app deployed there as well.
++
+image:openshift-deploy-openshift-console.png[OpenShift Online Console]
+
+[[deploying-a-cloud-app-to-openshift-online-using-fhc]]
+=== Deploying a Cloud App to OpenShift Online using `fhc`
+
+NOTE: This section makes use of the `fhc` command line tool. For more details on installing and using `fhc`, see the link:{LocalDevelopmentGuide}#local-development-guide-setting-up-fhc[Local Development documentation^].
+
+In order to use `fhc` to deploy Cloud Apps to OpenShift Online, you will need to perform the following operations:
+
+. Set your target and log in.
+. Verify the OpenShift Online MBaaS target.
+. Obtain the _ID_ of the environment you want to deploy to.
+. Obtain the _ID_ of the app you want to deploy.
+. Deploy your app using the `stage` operation.
+
+To set your target and login:
+
+* `$ fhc target https://{YOUR-DOMAIN}.openshift.feedhenry.com`
+* `$ fhc login`
+
+To verify the OpenShift Online MBaaS target, you can list your currently configured MBaaS services by running:
+
+`$ fhc admin mbaas list`
+
+Which will will yield something like:
+
+[width="49%",cols="20%,16%,16%,16%,16%,16%",options="header",]
+|===
+|ID |URL |Service Key |Username |Password |Modified
+|openshift-jsmith-email-com-enJo |https://openshift.redhat.com |undefined |jsmith@email.com |undefined |a few seconds ago
+|===
+
+To obtain the _ID_ of the environment you want to deploy to, you can list your available environments by running:
+
+`$ fhc admin environments list`
+
+Which will will yield something like:
+
+[width="49%",cols="20%,16%,16%,16%,16%,16%",options="header",]
+|===
+|ID |Label |Deploy on Create |Deploy on Update |MBaaS Targets |Modified
+|production-openshift-jsmith-email-com-enjo |Production |undefined |undefined |openshift-jsmith-email-com-enJo |7 days ago
+|development-openshift-jsmith-email-com-enjo |Development |undefined |undefined |openshift-jsmith-email-com-enJo |7 days ago
+|===
+
+To obtain the _ID_ of the app you wish to deploy, you must first obtain the _ID_ for the project its contained in. You can list the current projects by running:
+
+`$ fhc projects`
+
+Which will yield something like:
+
+[cols=",,,",options="header",]
+|===
+|ID |Title |No. Apps |Last Modified
+|wp3nlgt2jr5lvymx62tayp5z |project1 |2 |2 hours ago
+|piilhyeyqpad4nlgyveo6a43 |project2 |2 |a day ago
+|===
+
+You can now use the project's _ID_ to obtain the app's _ID_ via the `apps` command:
+
+`fhc apps <projID>`
+
+For example, if your app was contained in _project1_ you would run the following:
+
+`$ fhc apps wp3nlgt2jr5lvymx62tayp5z`
+
+Which will yield something like:
+
+[width="49%",cols="20%,16%,16%,16%,16%,16%",options="header",]
+|===
+|Id |Title |Description |Type |Git |Branch
+|wp3nlgrxlyzbgvwfjnmulnat |Cloud App | |cloud_nodejs |git@example.feedhenry.net:openshift/project1-Cloud-App.git |master
+|wp3nlgudwgejhnzbuj5twsus |Cordova App | |client_hybrid |git@example.feedhenry.net:openshift/.git |
+|===
+
+Lastly, using the _ID_ of the app and the environment, you can use the `stage` command to deploy the app to OpenShift Online:
+
+`fhc app stage --app=APP-ID --env=ENV-ID`
+
+For example, if we wanted to deploy _Cloud App_ from _project1_ to __Development__:
+
+`fhc app stage --app=wp3nlgrxlyzbgvwfjnmulnat --env=development-openshift-jsmith-example-com-enjo`
+
+When complete, it should yield something like:
+
+[source,json]
+----
+{
+  "action": {},
+  "cacheKey": "CloudAppdevelnat-openshiftdeploy",
+  "error": "",
+  "log": [],
+  "status": "complete"
+}
+----
+
+[[how-it-works-together]]
+== How it works together
+
+For {ProductShortName} to treat your OpenShift Online gears as an MBaaS target, {ProductShortName} must first establish a connection to OpenShift Online. This connection is setup when you login to {ProductShortName} for the first time with your OpenShift Online credentials. {ProductShortName} uses your credentials to login to OpenShift Online on your behalf, exchange authorization tokens, and setup SSH keys, which enables future communication between {ProductShortName} and OpenShift Online. {ProductShortName} then automatically configures OpenShift Online as an MBaaS target and makes it available to your projects.
+
+Once the initial configuration is complete and your {ProductShortName} projects can use the OpenShift MBaaS target, you may start deploying {ProductShortName} Cloud Apps to OpenShift Online. These apps are treated just like any other OpenShift Online application with the added benefit of being integrated with {ProductShortName}. For instance, deployments, application logging, and other operations may still be handled from {ProductShortName}, but you may also connect directly to the application running in OpenShift Online via SSH. You may also view details of the application once its deployed directly from the OpenShift Online console.
+
+[[gears]]
+=== Gears
+
+Since {ProductShortName} Cloud Apps deployed to OpenShift Online are treated the same as other applications deployed to OpenShift Online, they count towards and are limited by the number of available gears. The number of gears may vary depending on the https://www.openshift.com/products/pricing/plan-comparison[plan you have^]. If you attempt to deploy a Cloud App from {ProductShortName}, but do not have enough available gears, you will receive the following message:
+
+image:openshift-deploy-no-available-gears.png[OpenShift Online No Gears]
+
+In order to resolve this, you may consider https://www.openshift.com/products/pricing/plan-comparison[upgrading your account^] or deleting another application running on OpenShift Online.
+
+[[how-it-works-together-environments]]
+=== Environments
+
+When logging in to {ProductShortName} using your OpenShift Online credentials, it comes configured with two environments: _Development_ and __Production__. You may switch between these environments by using the menu in the top right of the screen when view the details of a cloud application:
+
+image:openshift-environments.png[OpenShift Online Environments]
+
+For an overview of all Cloud App deployments accross all environments, click on the _Lifecycle Management_ section of the project at the top of the screen:
+
+image:openshift-lifecycle-management.png[OpenShift Online Lifecycle Management]
+
+Note that *each* application in *each* environment will receive their own gears. For example, if a project had two Cloud App, _App1_ and __App2__, and each required one gear, to run _App1_ and _App2_ in _Development_ and _Production_ would require four gears.
+
+NOTE: At this time, when using {ProductShortName} with OpenShift Online, you may not configure additional environments beyond the provided _Development_ and _Production_.
+
+[[logging-and-debugging]]
+=== Logging and Debugging
+
+Viewing logs and troubleshooting for Cloud Apps deployed to OpenShift Online may be done from either {ProductShortName} or from the OpenShift Online tools.
+
+.OpenShift Tools
+OpenShift offers the ability to login and troubleshoot applications via SSH. To locate your Cloud App's SSH URL:
+
+. Navigate to your project.
+. Click on the desired Cloud App.
+. Click on _Details_ on the left side of the screen.
+. The SSH URL is found next to the _SSH URL_ field.
+image:openshift-ssh-url.png[OpenShift Online SSH URL]
+
+NOTE: The _SSH URL_ field is only available for Cloud Apps deployed to OpenShift Online. For more details on connecting to OpenShift using SSH, see the link:https://developers.openshift.com/en/managing-remote-connection.html[OpenShift SSH help page^].
+
+For more details on using SSH as well as the rest of the OpenShift Online tools, see the https://access.redhat.com/documentation/en-US/OpenShift_Online/2.0/html-single/User_Guide/index.html#sect-Managing_Applications_in_a_Secure_Shell_Environment[official documentation^].
+
+.{ProductShortName} Tools
+To view a Cloud App's logs from {ProductShortName}:
+
+. Navigate to your project.
+. Click on the desired Cloud App.
+. Click on _Logs_ on the left side of the screen.
+
+For more details on debugging applications with {ProductShortName}, see the link:{MobileDeveloperGuide}#debugging-apps[debugging guide].
+
+[[deleting-apps-deployed-to-openshift-online]]
+=== Deleting Apps Deployed to OpenShift Online
+
+Cloud apps must be deleted from {ProductShortName} side. {ProductShortName} will automatically handle deleting Cloud Apps from OpenShift Online.
+
+To delete Cloud Apps from {ProductShortName}:
+
+. Navigate to your desired project.
+. Choose the Cloud App you want to delete.
+. In the _Details_ section, click on _Delete App_ at the bottom of the screen.
+
+NOTE: If you delete an application in OpenShift Online without deleting it in {ProductShortName} and attempt to redeploy to OpenShift Online, you may receive the following message _error: "Error deploying App to OpenShift: Error disabling auto deploy: Application 'XXXXXXXXXXXXXXXXXXXXXXXX' not found. (404)"_
+
+[[ssh-keys]]
+=== SSH Keys
+
+When first logging in to {ProductShortName} with your OpenShift Online credentials, {ProductShortName} performs an authentication and authorization exchange with OpenShift Online and adds a Public Key to your OpenShift Online account. {ProductShortName} then uses that Public Key to deploy Cloud Apps to OpenShift Online via SSH. All keys associated with your OpenShift Online account may be viewed by going to your https://openshift.redhat.com/app/console/settings[account's settings page^].
+
+In cases where the Public Key generated by {ProductShortName} expires or is removed from your OpenShift Online account, you may receive the following message:
+
+image:openshift-deploy-no-public-key.png[OpenShift Online No Public Key]
+
+To resolve this issue, log out of {ProductShortName} and log back in. {ProductShortName} will create a new Public Key and use it going forward for deployments.
+
+Alternatively, you may be prompted prior to performing a deployment to re-generate your access token:
+
+image:openshift-deploy-regenerate-key.png[OpenShift Online No Public Key]
+
+Enter your OpenShift Online credentials and click __Re-Generate Access Tokens__.
+
+[[domains]]
+=== Domains
+
+Domains are a part of an OpenShift Online application's URL (for example __myApplication-domain.example.com__) and many applications may be deployed to a single domain. The number of domains that a user may define depends on https://www.openshift.com/products/pricing/plan-comparison[their current plan^]. For more information on domains and how to manage them, see the https://access.redhat.com/documentation/en-US/OpenShift_Online/2.0/html/User_Guide/chap-Domains.html[OpenShift Online documentation^].

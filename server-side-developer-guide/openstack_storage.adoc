@@ -1,0 +1,422 @@
+include::shared/attributes.adoc[]
+
+[[openstack-storage-integration]]
+= Openstack Storage Integration
+
+The Platform allows access to Openstack services from server-side code. There are several cloud providers providing Openstack Storage Services, including Rackspace and HP.
+
+While it's possible to access Openstack Storage servers by writing code that sends HTTP requests, we think it's easier to use an open source module which we've created for node.js which provides access to the most common features: create, list, and delete containers, and put, get, list and delete for files. Our open source module can be used in your server-side code by adding a dependency to your cloud code's package.json file, for the module named `openstack-storage`
+
+[source,javascript]
+----
+{
+  "dependencies": {
+    "openstack-storage": "*"
+  }
+}
+----
+
+[[authenticating]]
+== Authenticating
+
+Authentication can be done by providing your user credentials to the language bindings. You can use either the `passwordCredentials` scheme
+
+[source,javascript]
+----
+{
+  "auth": {
+    "passwordCredentials": {
+      "username": "user1234",
+      "password":"secretpassword"
+    },
+    "tenantId": "your tennant id"
+  },
+  "host": "http://192.168.28.52:5000",
+  "storageName": "swift-service"
+}
+----
+
+or the `apiAccessKeyCredentials` scheme
+
+[source,javascript]
+----
+{
+  "auth": {
+    "apiAccessKeyCredentials": {
+      "accessKey": "YOUR API ACCESS KEY",
+      "secretKey": "YOUR SECRET KEY"
+    },
+    "tenantId": "YOUR TENANT ID"
+  },
+  "host": "YOUR IDENTITY SERVER URL",
+  "storageName": "THE NAME OF YOUR STORAGE SERVICE IN THE SERVICE CATALOG"
+}
+----
+
+Whichever one you choose will depend on you Openstack Storage provider.
+
+The `username`, `password`, `accessKey`, `secretKey`, `tenantId`, and `host` fields are provided by the Openstack Storage service provider, and may be available in their dashboard. The `storageName` field is the field name in the serviceCatalog, returned by the Identity Service, that refers to the storageUrl endpoint. It varies between the service providers, the default openstack installation uses: `Swift Service`, Rackspace use: `cloudFiles`, HP use: `Object Storage`
+
+[[constructor]]
+== Constructor
+
+[source,javascript]
+----
+OpenStackStorage(authFn, callback(err, res, tokens))
+----
+
+[[description]]
+=== Description
+
+Construct an OpenStackStorage object, to allow access an openstack storage server.
+
+[[arguments]]
+=== Arguments
+
+[[authfn]]
+==== authFn
+
+A function, which can be called by the openstack-storage module, to authenticate and return the Storage Url.  In most cases, this will be the `authenticate` function included with the module, as in the example below.
+
+[[callback]]
+==== callback
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** res : The response of the web request
+      *** type : object
+  ** tokens : the authentication token and url, returned from Openstack.  These are provided for informational purposes, and are handled internally within the module
+      *** type : object
+      *** keys :
+          **** id : the Auth token
+          **** expires : the expiry date/time of the Auth token
+          **** storageUrl : the url of the Storage server
+
+
+[[constructor-example]]
+=== Example
+
+[source,javascript]
+----
+var async = require('async');
+var storage = require('openstack-storage');
+
+var authFn = async.apply(storage.authenticate, config);
+var storageSwift = new storage.OpenStackStorage (authFn, function(err, res, tokens) {
+  console.log('Storage constructor - err: ', err, ', tokens: ', tokens);
+});
+----
+
+[[getcontainers]]
+== getContainers
+
+[source,javascript]
+----
+getContainers (callback(err, result))
+----
+
+[[description-1]]
+=== Description
+
+Get the list of containers
+
+[[arguments-1]]
+=== Arguments
+
+[[callback-1]]
+==== callback
+
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** result : if error the result will be the HTTP status code from the Storage server, otherwise it will be an array of container objects
+      *** key :
+          **** name : the name of the container
+
+
+[[example-1]]
+=== Example
+
+[source,javascript]
+----
+storage.getContainers(function(err, containers) {
+  if (err) {
+    console.log('Containers - err: ', err, ', statusCode: ', containers);
+  } else {
+    console.log('Containers - success, containers: ', containers); // containers array
+  }
+});
+----
+
+[[getfiles]]
+== getFiles
+
+[source,javascript]
+----
+getFiles (containerName, callback(err, result))
+----
+
+[[description-2]]
+=== Description
+
+Get the list of files in the specified container
+
+[[arguments-2]]
+=== Arguments
+
+[[containername]]
+=== containerName
+
+
+* type: string - name of container
+
+
+[[callback-2]]
+==== callback
+
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** result : if error the result will be the HTTP status code from the Storage server, otherwise it will be an array of file objects
+      *** key :
+          **** name : the name of the file
+
+
+[[example-2]]
+=== Example
+
+[source,javascript]
+----
+storage.getFiles("images", function(err, filess) {
+  if (err) {
+    console.log('Files - err: ', err, ', statusCode: ', filess);
+  } else {
+    console.log('Files - success, files: ', files); // filess array
+  }
+});
+----
+
+[[createcontainer]]
+== createContainer
+
+[source,javascript]
+----
+createContainer (containerName, callback(err, statusCode))
+----
+
+[[description-3]]
+=== Description
+
+Create a container with the specified name
+
+[[arguments-3]]
+=== Arguments
+
+[[containername-1]]
+=== containerName
+
+
+* type: string - name of container to create
+
+
+[[callback-3]]
+==== callback
+
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** statusCode : The HTTP status code returned from the storage server (2xx codes are success)
+
+
+[[example-3]]
+=== Example
+
+[source,javascript]
+----
+storage.createContainer("newfiles", function(err, statusCode) {
+  console.log('createContainer - err: ', err, ', statusCode: ', statusCode);
+});
+----
+
+[[deletecontainer]]
+== deleteContainer
+
+[source,javascript]
+----
+deleteContainer (containerName, callback(err, statusCode))
+----
+
+[[description-4]]
+=== Description
+
+Delete the container with the specified name
+
+[[arguments-4]]
+=== Arguments
+
+[[containername-2]]
+=== containerName
+
+
+* type: string - name of container to delete
+
+
+[[callback-4]]
+==== callback
+
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** statusCode : The HTTP status code returned from the storage server (2xx codes are success)
+
+
+[[example-4]]
+=== Example
+
+[source,javascript]
+----
+storage.deleteContainer("newfiles", function(err, statusCode) {
+  console.log('deleteContainer - err: ', err, ', statusCode: ', statusCode);
+});
+----
+
+[[putfile]]
+== putFile
+
+[source,javascript]
+----
+putFile (containerName, fileToPut, callback(err, statusCode))
+----
+
+[[description-5]]
+=== Description
+
+Upload the file described by the fileToPut object to the named container
+
+[[arguments-5]]
+=== Arguments
+
+[[containername-3]]
+=== containerName
+
+
+* type: string - name of container to upload file to
+
+
+[[filetoput]]
+=== fileToPut
+
+
+* type object
+* keys
+    ** remoteName - name to call the file in the remote container
+    ** localFile  - the file name and path of a local file to send - if this key is specified you should not specify a stream
+    ** stream     - a stream to be uploaded as a file - if this key is specified you should not specify a localFile
+
+
+[[callback-5]]
+==== callback
+
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** statusCode : The HTTP status code returned from the storage server (2xx codes are success)
+
+
+[[example-5]]
+=== Example
+
+[source,javascript]
+----
+storage.putFile("newfiles", {remoteName: 'file.txt', localFile: '/tmp/afile.txt'}, function(err, statusCode) {
+  console.log('putFile - err: ', err, ', statusCode: ', statusCode);
+});
+----
+
+[[getfile]]
+== getFile
+
+[source,javascript]
+----
+getFile (containerName, fileToGet, callback(err, statusCode))
+----
+
+[[description-6]]
+=== Description
+
+Download the file described by the fileToGet object from the named container
+
+[[arguments-6]]
+=== Arguments
+
+[[containername-4]]
+=== containerName
+
+
+* type: string - name of container to get the file from
+
+
+[[filetoget]]
+=== fileToGet
+
+
+* type object
+* keys
+    ** remoteName - name of the remote file in the specified container
+    ** localFile  - the file name and path of a local file to save - if this key is specified you should not specify a stream
+    ** stream     - download the file to the local stream - if this key is specified you should not specify a localFile
+
+
+[[callback-6]]
+==== callback
+
+
+* type: function - Callback function that is called when the operation is completed
+* arguments:
+  ** err : A Error object contains relevant error information
+      *** type : object.
+      *** keys :
+          **** message
+              ***** type: string - error message
+  ** statusCode : The HTTP status code returned from the storage server (2xx codes are success)
+
+
+[[example-6]]
+=== Example
+
+[source,javascript]
+----
+storage.getFile("newfiles", {remoteName: 'file.txt', localFile: '/tmp/afile.txt'}, function(err, statusCode) {
+  console.log('putFile - err: ', err, ', statusCode: ', statusCode);
+});
+----

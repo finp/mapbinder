@@ -1,0 +1,41 @@
+include::shared/attributes.adoc[]
+
+[[rhmap-4-x-mbaas]]
+= {ProductShortName} 4.x MBaaS
+
+[[intro-overview]]
+== Overview
+
+Red Hat Mobile Application ({ProductShortName}) 4.x has a hybrid deployment model -- the Core, the MBaaS, and the Build Farm are deployed in different locations.
+
+* Development and management of apps occurs in the multi-tenant cloud instance of the {ProductShortName} Core hosted by Red Hat.
+* Application data, runtime, and integrations are deployed to the {ProductShortName} MBaaS installed in a private or public instance of OpenShift Enterprise 3.
+* The Build Farm is deployed separately from the Core and the MBaaS and is shared between all instances of {ProductShortName}. Third-party Linux, Windows, and Apple server hosting providers are used to support building Client App binaries for all platforms.
+
+The _Mobile Backend-as-a-Service_ (MBaaS) is a core component of {ProductShortName} – the back-end platform hosting containerized Cloud App in conjunction with database storage (MongoDB).
+The Cloud Apps deployed in an MBaaS can make use of {ProductShortName} APIs, such as data synchronization, caching, or push notifications, and integrate with enterprise systems or other Cloud Services.
+
+[[architecture-of-the-mbaas]]
+== Architecture of the MBaaS
+
+The {ProductShortName} MBaaS 4.x is built on top of several technologies, including OpenShift Enterprise 3, Kubernetes, Docker, and Red Hat Software Collections.
+The MBaaS consists of several components, each running in its own Docker container.
+Similarly, every Cloud App deployed to the MBaaS runs in a Docker container.
+Those containers are deployed and orchestrated by Kubernetes.
+
+image:mbaas-deployment.png[MBaaS deployment diagram]
+
+In the MBaaS, the users can configure multiple isolated runtime and storage environments to support software development life-cycle stages, such as development, testing, and production.
+Each environment can host multiple Cloud Apps.
+
+[[security-considerations]]
+== Security considerations
+
+Since the MBaaS is not hosted in Red Hat's public multi-tenant cloud, the data transmitted between the mobile device and the Cloud App does not pass through any servers operated by Red Hat or any other third party. Private data from backend systems is transmitted directly between mobile devices and the MBaaS.
+
+The following data still resides in the {ProductShortName} Core:
+
+* User names and passwords of {ProductShortName} accounts
+* Master database of the Core, with entries for projects, apps, and their IDs
+* Git repositories hosting the source code of Client and Cloud Apps
+* App store containing the built binaries of Client Apps

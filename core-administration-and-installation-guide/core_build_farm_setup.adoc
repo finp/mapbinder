@@ -1,0 +1,93 @@
+include::shared/attributes.adoc[]
+
+[[modifying-build-farm-configuration]]
+= Modifying Build Farm Configuration
+
+[NOTE]
+--
+To determine the values for the `BUILDER_ANDROID_SERVICE_HOST` and `BUILDER_IPHONE_SERVICE_HOST` environment variables, contact link:https://access.redhat.com/support/[Red Hat Support^] asking for the {ProductShortName} Build Farm URLs that are appropriate for your region.
+--
+
+This procedure shows how to set up the Build Farm if it hasn't been set up during installation in the _Frontend setup_ step in the
+xref:installing-the-core[] section, or if you need to modify the Build Farm configuration.
+
+. Log in to the cluster using the `oc` command line tool.
+. Edit the `millicore` deployment configuration:
++
+[source]
+----
+oc edit dc/millicore
+----
++
+This opens an editor with the `millicore` deployment configuration.
++
+.. Find the first occurrence of `BUILDER_ANDROID_SERVICE_HOST` environment variable and change the value to refer to the URL of the Android Build Farm  _without_ `http(s)://`.
+
+.. Find the second occurrence of `BUILDER_ANDROID_SERVICE_HOST` environment variable and change the value to refer to the URL of the Android Build Farm  including `http(s)://`.
+
+.. Find the first occurrence of `BUILDER_IPHONE_SERVICE_HOST` environment variable variable and change the value to refer to the URL of the iOS Build Farm _without_ `http(s)://`.
+
+.. Find the second occurrence of `BUILDER_IPHONE_SERVICE_HOST` environment variable variable and change the value to refer to the URL of the iOS Build Farm _including_ `http(s)://`.
+
+[NOTE]
+--
+Changing the deployment configuration triggers a new deployment of `millicore`. Build Farm configuration changes apply after the deployment finishes.
+--
+
+[[build-farm-core-validation]]
+== Validating Build Farm Setup
+
+. Log in to RHMAP Studio.
+. Create a new _Cordova Hello World_ project.
+. Navigate to the newly created project's _Cordova App_.
+. Navigate to the _Build_ section in the left-hand side navigation.
+. Select the _Android_ target and trigger the build.
+
+The build logs will provide details about the ongoing build.
+
+If the Build Farm is configured correctly, once the build is complete, you are prompted to download the Android APK file.
+
+
+[[use-proxy-in-build-farm]]
+== Using a Proxy with the Build Farm
+
+. Start fhc:
++
+[source,bash]
+----
+$ fhc login
+----
++
+You will be prompted for your username and password.
+
+. Make sure that the current user has _admin_ permissions as described in link:{ProductFeatures}#user-roles[Administrator User Role] section.
++
+To check which user is logged in, run:
++
+[source,bash]
+----
+$ fhc user
+----
+
+. Configure the cluster properties to enable the proxy. The following table lists the properties that are required:
++
+[cols="",options="header",]
+|==================================
+|Property
+|http.proxy.host
+|http.proxy.port
+|http.proxy.auth.username
+|http.proxy.auth.password
+|==================================
++
+To configure the required properties use the following command template:
++
+----
+$ fhc clusterprops create <prop> <value>
+----
++
+To update an existing property:
++
+----
+$ fhc clusterprops update <prop> <value>
+----
