@@ -22,7 +22,7 @@
 # topic groups and topics on the main page.
 ---
 Name: Cloud API Reference
-Dir: cloud_api
+Dir: cloud-api
 Topics:
   - Name: Cache
     File: cache
