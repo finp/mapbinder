@@ -63,9 +63,11 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
       repoUrl = getRepoURL()
     }
 
+println("b4 creating PR project") 
     // When testing a PR, create a new project to perform the build
     // and deploy artifacts.
     if (isPR) {
+      println("Create PR project") 
       stage ('Create PR Project') {
         setPreviewStatus(repoUrl, "Building application", "PENDING", "", false)
         setBuildStatus(repoUrl, "ci/approve", "Aprove after testing", "PENDING", "")
