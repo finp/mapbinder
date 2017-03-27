@@ -5,7 +5,7 @@ def isPR=false                   // true if the branch being tested belongs to a
 def project=""                   // project where build and deploy will occur
 def projectCreated=false         // true if a project was created by this build and needs to be cleaned up
 def repoUrl=""                   // the URL of this project's repository
-def appName="openshift-docs"     // name of application to create
+def appName="feedhenry-docs"     // name of application to create
 def approved=false               // true if the preview was approved
 
 // uniqueName returns a name with a 16-character random character suffix
@@ -35,18 +35,18 @@ def getRepoURL = {
 }
 
 // getRouteHostname retrieves the host name from the given route in an
-// OpenShift namespace
+// feedhenry namespace
 def getRouteHostname = { String routeName, String projectName ->
   sh "oc get route ${routeName} -n ${projectName} -o jsonpath='{ .spec.host }' > apphost"
   return readFile("apphost").trim()
 }
 
-// setPreviewStatus sets a status item for each openshift-docs release
+// setPreviewStatus sets a status item for each feedhenry-docs release
 def setPreviewStatus = { String url, String message, String state, String host, boolean includeLink ->
-   setBuildStatus(url, "ci/app-preview/origin", message, state, includeLink ? "http://${host}/openshift-origin/latest/welcome/index.html" : "")
-   setBuildStatus(url, "ci/app-preview/enterprise", message, state, includeLink ? "http://${host}/openshift-enterprise/master/welcome/index.html" : "")
-   setBuildStatus(url, "ci/app-preview/online", message, state, includeLink ? "http://${host}/openshift-online/master/welcome/index.html" : "")
-   setBuildStatus(url, "ci/app-preview/dedicated", message, state, includeLink ? "http://${host}/openshift-dedicated/master/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/origin", message, state, includeLink ? "http://${host}/feedhenry-origin/latest/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/enterprise", message, state, includeLink ? "http://${host}/feedhenry-enterprise/master/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/online", message, state, includeLink ? "http://${host}/feedhenry-online/master/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/dedicated", message, state, includeLink ? "http://${host}/feedhenry-dedicated/master/welcome/index.html" : "")
    setBuildStatus(url, "ci/app-preview/registry", message, state, includeLink ? "http://${host}/atomic-registry/latest/registry_quickstart/index.html" : "")
 }
 
