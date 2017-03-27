@@ -5,7 +5,7 @@ def isPR=false                   // true if the branch being tested belongs to a
 def project=""                   // project where build and deploy will occur
 def projectCreated=false         // true if a project was created by this build and needs to be cleaned up
 def repoUrl=""                   // the URL of this project's repository
-def appName="feedhenry-docs"     // name of application to create
+def appName="openshift-docs"     // name of application to create
 def approved=false               // true if the preview was approved
 
 // uniqueName returns a name with a 16-character random character suffix
