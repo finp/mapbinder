@@ -29,3 +29,21 @@ Topics:
   - Name: db
     File: db
     Distros: feedhenry-origin
+  - Name: forms
+    File: forms
+  - Name: hash
+    File: hash
+  - Name: host
+    File: host
+  - Name: push
+    File: push
+  - Name: sec
+    File: sec
+  - Name: service
+    File: service
+  - Name: stats
+    File: stats
+  - Name: sync
+    File: sync
+
+
