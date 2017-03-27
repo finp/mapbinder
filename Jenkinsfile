@@ -35,18 +35,18 @@ def getRepoURL = {
 }
 
 // getRouteHostname retrieves the host name from the given route in an
-// OpenShift namespace
+// feedhenry namespace
 def getRouteHostname = { String routeName, String projectName ->
   sh "oc get route ${routeName} -n ${projectName} -o jsonpath='{ .spec.host }' > apphost"
   return readFile("apphost").trim()
 }
 
-// setPreviewStatus sets a status item for each openshift-docs release
+// setPreviewStatus sets a status item for each feedhenry-docs release
 def setPreviewStatus = { String url, String message, String state, String host, boolean includeLink ->
-   setBuildStatus(url, "ci/app-preview/origin", message, state, includeLink ? "http://${host}/openshift-origin/latest/welcome/index.html" : "")
-   setBuildStatus(url, "ci/app-preview/enterprise", message, state, includeLink ? "http://${host}/openshift-enterprise/master/welcome/index.html" : "")
-   setBuildStatus(url, "ci/app-preview/online", message, state, includeLink ? "http://${host}/openshift-online/master/welcome/index.html" : "")
-   setBuildStatus(url, "ci/app-preview/dedicated", message, state, includeLink ? "http://${host}/openshift-dedicated/master/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/origin", message, state, includeLink ? "http://${host}/feedhenry-origin/latest/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/enterprise", message, state, includeLink ? "http://${host}/feedhenry-enterprise/master/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/online", message, state, includeLink ? "http://${host}/feedhenry-online/master/welcome/index.html" : "")
+   setBuildStatus(url, "ci/app-preview/dedicated", message, state, includeLink ? "http://${host}/feedhenry-dedicated/master/welcome/index.html" : "")
    setBuildStatus(url, "ci/app-preview/registry", message, state, includeLink ? "http://${host}/atomic-registry/latest/registry_quickstart/index.html" : "")
 }
 
@@ -63,9 +63,11 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
       repoUrl = getRepoURL()
     }
 
+println("b4 creating PR project") 
     // When testing a PR, create a new project to perform the build
     // and deploy artifacts.
     if (isPR) {
+      println("Create PR project") 
       stage ('Create PR Project') {
         setPreviewStatus(repoUrl, "Building application", "PENDING", "", false)
         setBuildStatus(repoUrl, "ci/approve", "Aprove after testing", "PENDING", "")
