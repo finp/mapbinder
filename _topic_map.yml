@@ -46,6 +46,7 @@ Topics:
   - Name: sync
     File: sync
 ---
+Name: Client SDK
 Dir: client-sdk
 Topics:
   - Name: package-distribution-setup
@@ -71,6 +72,7 @@ Topics:
   - Name: appcelerator-titanium
     File: appcelerator-titanium
 ---
+Name:Client API
 Dir: client-api
 Topics:
   - Name: auth
