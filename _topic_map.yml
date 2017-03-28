@@ -72,7 +72,7 @@ Topics:
   - Name: appcelerator-titanium
     File: appcelerator-titanium
 ---
-Name:Client API
+Name: Client API
 Dir: client-api
 Topics:
   - Name: auth
