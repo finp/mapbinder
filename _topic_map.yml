@@ -45,6 +45,7 @@ Topics:
     File: stats
   - Name: sync
     File: sync
+---
 Dir: client-sdk
 Topics:
   - Name: package-distribution-setup
@@ -69,7 +70,7 @@ Topics:
     File: web
   - Name: appcelerator-titanium
     File: appcelerator-titanium
-
+---
 Dir: client-api
 Topics:
   - Name: auth

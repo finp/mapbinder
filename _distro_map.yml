@@ -9,7 +9,4 @@ feedhenry-origin:
     master:
       name: Latest
       dir: latest
-    feedhenry-4.3:
-      name: '4.3'
-      dir: '4.3'
       
