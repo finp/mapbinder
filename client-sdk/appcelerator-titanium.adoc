@@ -1,0 +1,107 @@
+include::shared/attributes.adoc[]
+
+[[appcelerator]]
+= Appcelerator
+
+[[appcelerator-introduction]]
+== Introduction
+
+This is a standard Appcelerator Titanium App.
+
+Before using this SDK, make sure you have the Titanium developer tools installed. You can download them from https://platform.appcelerator.com/#/tools[here^].
+
+[[appcelerator-new-app]]
+== New App
+
+Download the https://github.com/feedhenry-training/fh-titanium-example.git[sample app^] to get started with a new Appcelerator Titanium App which has the {ProductShortName} SDK already included.
+
+[[appcelerator-existing-app]]
+== Existing App
+
+[NOTE]
+--
+`fh-js-sdk` is distributed using link:https://www.npmjs.com/[npm^]. To be able to complete the steps below, you must link:{ClientSDK}#install-npm[have npm installed].
+--
+
+Appcelerator Titanium apps use a variant of our standard JavaScript SDK.
+
+[[appcelerator-integrate-sdk]]
+=== Download and Integrate the SDK using npm
+
+To integrate the RHMAP JavaScript SDK, create a `package.json` file in the `/Resources` folder of your Basic Web App project.
+
+. On the command line, use the `cd` command to change the directory to the `/Resources` folder of your Appcelerator Titanium Basic Web App project.
+
+. To create the `package.json` file, if it does not already exist in this folder, execute the following command:
++
+[source,bash]
+--
+npm init
+--
++
+When you execute the command, npm will repeatedly prompt you to supply additional information to populate the header of the newly-created `package.json` file. To skip this prompt and make npm populate the header with default information, use the following command:
++
+[source,bash]
+--
+npm init --force
+--
++
+. declare `fh-js-sdk` as a dependency in the `package.json` file:
++
+[source,json]
+--
+  "dependencies": {
+    "fh-js-sdk": "^2.18.1"
+  }
+--
++
+. to install the JavaScript SDK into the `/Resources` folder, execute the following  command:
++
+[source,bash]
+--
+npm install
+--
+
+[[appcelerator-set-up-configuration]]
+=== Set up Configuration
+
+In the `/Resources` folder, create a file named `fhconfig.js` with the following contents:
+
+
+[source,javascript]
+----
+exports = {
+  "appid":"__ID_OF_APP_IN_PROJECT__",
+  "appkey":"__APP_API_KEY_OF_APP_IN_PROJECT__",
+  "connectiontag":"__CONNECTION_TAG_TO_USE_FOR_CLOUD__",
+  "host":"__APP_STUDIO_HOST__",
+  "projectid":"__PROJECT_ID__"
+};
+----
+
+To obtain the values for the keys specified in the `fhconfig.js` file:
+
+. Open your Project in {ProductShortName} Studio.
++
+. Go to _Apps, Cloud Apps and Services_ and click on your Client App to display the App details screen.
++
+. Use the value of *App ID* as the value of `appid`.
++
+. Use the value of *App API Key* as the value of `appkey`.
++
+. In your Project, go to _Connections_.
++
+. Find your App in the list of Connections.
++
+. Use the *Connection Tag* of your App as the value of `connectiontag`.
++
+. Use the URL of your instance of {ProductShortName} as the value of `host`.
++
+. To obtain the Project ID, go to _Settings_ and use the *Project ID* as the value of `projectid`.
+
+More information on connections link:{ProductFeatures}#projects-connections[can be found here].
+
+[[appcelerator-use-sdk]]
+== Use SDK
+
+See link:{ClientAPI}[API Docs] for full details on the APIs available within the SDK.

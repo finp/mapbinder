@@ -81,3 +81,4 @@ If you don't specify Cordova platform versions in your app, the default pinned v
 == API Documentation
 
 * link:{ClientAPI}[API Docs] - documentation for all Client APIs
+* link:http://feedhenry.org/fh-js-sdk/modules/\_fh_js_sdk_d_.html[JS SDK] - JavaScript SDK
