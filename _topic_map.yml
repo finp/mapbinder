@@ -71,10 +71,10 @@ Topics:
     File: web
   - Name: appcelerator-titanium
     File: appcelerator-titanium
----
 Name: Client API
-Dir: client-napi
+Dir: client-api
 Topics:
+  ---
   - Name: auth
     File: auth
   - Name: cloud
@@ -99,3 +99,9 @@ Topics:
     File: sync
   - Name: act
     File: act
+Name: Mobile Developer
+Dir: mobile-developer-guide
+Topics:
+  ---
+  - Name: mobile
+    File: master
