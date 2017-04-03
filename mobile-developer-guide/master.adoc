@@ -12,7 +12,6 @@ include::deploying_apps_on_ios.adoc[leveloffset=+2]
 
 [[mobile-developer-guide-windows]]
 == Windows
-include::deploying_apps_on_wp8.adoc[leveloffset=+2]
 include::windows_platform_support.adoc[leveloffset=+2]
 include::windows_forms_apps_tutorial.adoc[leveloffset=+2]
 

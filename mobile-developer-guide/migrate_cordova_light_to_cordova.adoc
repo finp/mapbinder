@@ -1,1 +1,0 @@
-../migrate_cordova_light_to_cordova.adoc

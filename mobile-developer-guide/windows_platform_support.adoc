@@ -18,13 +18,11 @@ The current version of {ProductShortName} targets Windows Phone version 8 and hi
 ** Full support, except:
 *** Apps can't be built in the {ProductShortName} and must be built locally
 *** Cordova apps need a small workaround to enable support for dynamic content
-* **Windows Phone 8**:
+* **Windows Phone 8.1**:
 ** Full support
 * **Windows Phone 7,7.5 and older**, +
 * **Windows 8 Pro for Tablets**, +
 * **Windows 8 RT for Tablets**, +
-* **Windows 7 and 8 Desktop**:
-** No support
 
 [[building-windows-apps-locally]]
 == Building Windows Apps Locally
