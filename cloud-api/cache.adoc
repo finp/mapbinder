@@ -19,7 +19,7 @@ The memory limit for the cache can be managed in the Studio, which also allows y
 
 NOTE:  The Max Cache Size limit setting affects all Cloud Apps for an environment.
 
-image:manage-cache.png[Manage cache]
+image:shared/images/manage-cache.png[Manage cache]
 
 [[fh-cache-examples]]
 == Examples
