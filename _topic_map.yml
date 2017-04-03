@@ -73,7 +73,7 @@ Topics:
     File: appcelerator-titanium
 ---
 Name: Client API
-Dir: client-api
+Dir: client-napi
 Topics:
   - Name: auth
     File: auth
