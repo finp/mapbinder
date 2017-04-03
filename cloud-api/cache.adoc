@@ -8,6 +8,7 @@ include::../attributes.adoc[]
 $fh.cache(options, callback);
 ----
 
+{ProductShortName}
 Store, read or delete a value in the cache layer of your Cloud App.
 
 By default, the cache store has a memory limit of 1GB. Once the limit is reached, the store starts removing data using an LRU (Least Recently Used) algorithm.
@@ -19,7 +20,7 @@ The memory limit for the cache can be managed in the Studio, which also allows y
 
 NOTE:  The Max Cache Size limit setting affects all Cloud Apps for an environment.
 
-image:shared/images/manage-cache.png[Manage cache]
+image:images/manage-cache.png[Manage cache]
 
 [[fh-cache-examples]]
 == Examples
