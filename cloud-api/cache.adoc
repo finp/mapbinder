@@ -1,4 +1,4 @@
-include::shared/attributes.adoc[tag=test]
+include::client-api/attributes.adoc[tag=test]
 
 [[fh-cache]]
 = $fh.cache
