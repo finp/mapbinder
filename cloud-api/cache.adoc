@@ -1,4 +1,4 @@
-include::shared/attributes.adoc[]
+include::../attributes.adoc[]
 
 [[fh-cache]]
 = $fh.cache
