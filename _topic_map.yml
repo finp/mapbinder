@@ -99,9 +99,10 @@ Topics:
     File: sync
   - Name: act
     File: act
+
 Name: Mobile Developer
 Dir: mobile-developer-guide
 Topics:
   ---
-  - Name: mobile
-    File: master
+  - Name: Android
+    File: deploying_apps_on_android
