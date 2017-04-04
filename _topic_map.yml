@@ -99,10 +99,3 @@ Topics:
     File: sync
   - Name: act
     File: act
-
-Name: Mobile Developer
-Dir: mobile-developer-guide
-Topics:
-  ---
-  - Name: Android
-    File: deploying_apps_on_android
