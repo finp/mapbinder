@@ -98,3 +98,38 @@ Topics:
     File: sync
   - Name: act
     File: act
+---
+Name: Mobile Developer
+Dir: mobile-developer-guide
+Topics:
+  - Name: deploying_apps_on_android
+    File: deploying_apps_on_android
+  - Name: deploying_apps_on_ios
+    File: deploying_apps_on_ios
+  - Name: windows_platform_support
+    File: windows_platform_support
+  - Name: windows_forms_apps_tutorial
+    File: windows_forms_apps_tutorial
+  - Name: app_forms_integration
+    File: app_forms_integration
+  - Name: forms_support_openshift
+    File: forms_support_openshift
+  - Name: app_development_angular
+    File: app_development_angular
+  - Name: app_development_backbone
+    File: app_development_backbone
+  - Name: app_development_ionic
+    File: app_development_ionic
+  - Name: using_cordova_plugins
+    File: using_cordova_plugins
+  - Name: secure_keys
+    File: secure_keys
+  - Name: debugging
+    File: debugging
+  - Name: submitting_android
+    File: submitting_android
+  - Name: submitting_ios
+    File: submitting_ios
+  - Name: credentials
+    File: credentials
+  
