@@ -132,4 +132,50 @@ Topics:
     File: submitting_ios
   - Name: credentials
     File: credentials
-  
+---
+Name: Server Side Developer
+Dir: server-side-developer-guide
+Topics:    
+  - Name: cloud_development
+    File: cloud_development
+  - Name: environments
+    File: environments
+  - Name: using_nodejs_modules
+    File: using_nodejs_modules
+  - Name: npm
+    File: npm
+  - Name: node_version
+    File: node_version
+  - Name: api_mapper
+    File: api_mapper
+  - Name: sync_service
+    File: sync_service
+  - Name: using_push_notifications
+    File: using_push_notifications
+  - Name: create_forms_data_source
+    File: create_forms_data_source
+  - Name: stats
+    File: stats
+  - Name: using_saml_for_authentication
+    File: using_saml_for_authentication
+  - Name: openshift_online_code_staging
+    File: openshift_online_code_staging
+  - Name: auth_policy_oauth_google
+    File: auth_policy_oauth_google
+  - Name: openstack_storage
+    File: openstack_storage
+  - Name: accessing-the-database
+    File: accessing-the-database
+  - Name: databrowser
+    File: databrowser
+  - Name: appdata_export
+    File: appdata_export
+  - Name: appdata_import
+    File: appdata_import
+  - Name: app_import
+    File: app_import
+  - Name: nodeapp_and_webapp_to_mbaas
+    File: nodeapp_and_webapp_to_mbaas
+  - Name: teams_migration
+    File: teams_migration
+      
